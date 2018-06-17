@@ -6,6 +6,6 @@
 
 #include "db_connection.h"
 
-int create_new_dj_room(create_room_msg_t *create_info, dj_room_t *dj_room){
+int create_new_dj_room(msg_header_t header, create_room_msg_t create_info, dj_room_t *dj_room){
     return 1;
 }

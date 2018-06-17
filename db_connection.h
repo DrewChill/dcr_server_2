@@ -20,8 +20,8 @@ extern "C" {
 
 #include <stdint.h>
 #include "byte_msg_parser.h"
-#include <mysql56/my_global.h>
-#include <mysql.h>
+//#include <mysql56/my_global.h>
+//#include <mysql.h>
 
 typedef struct{
 	uint32_t room_id;

@@ -88,22 +88,22 @@ void *listen_for_create_requests(){
 		//handle the request
 		//1. sql cmnd to add room to db. return room id
 		
-		msg_header_t header;
-		parse_header_info(data, &header);
+		msg_header_t *header = malloc(sizeof(msg_header_t));
+		parse_header_info(data, header);
 		
-		//create_room_msg_t create_room_msg = malloc(sizeof(create_room_msg_t));
+		create_room_msg_t *create_room_msg = malloc(sizeof(create_room_msg_t));
 //		if(parse_create_room_msg(data, &create_room_msg)<0){
 //			//error handler
 //		}
 
-		dj_room_t new_dj_room = malloc(sizeof(new_dj_room));
-		if(create_new_dj_room(NULL, &new_dj_room)<0){
+		dj_room_t *new_dj_room = malloc(sizeof(new_dj_room));
+		if(create_new_dj_room(*header, *create_room_msg, new_dj_room)<0){
 			//error handler
 		}
 	
 		//2. use room id to create distribution container. return connection info for container
 		container_connection_info_t container_connection;
-		if(handle_new_connection_request(new_dj_room.room_id, header.user_id, &container_connection)<0){
+		if(handle_new_connection_request(new_dj_room->room_id, header->user_id, &container_connection)<0){
 			//error handler
 		}
 
