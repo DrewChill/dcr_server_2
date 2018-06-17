@@ -5,23 +5,40 @@
  */
 
 #include "byte_msg_parser.h"
+#include <stdlib.h>
+#include <string.h>
 
 //will construct a request response message
-void construct_request_response_msg(request_status_msg_t *msg, uint8_t status){
+void construct_request_response_msg(request_status_msg_t *msg, uint8_t status, uint32_t user_id, uint32_t room_id){
+    msg_header_t *header = malloc(sizeof(msg_header_t));
+    header->body_length=1;
+    header->msg_type = REQUEST_STATUS_TYPE;
+    header->room_id = room_id;
+    header->user_id = user_id;
     
+    msg->header = *header;
+    msg->status = status;
 }
 
 //will populate the message header info. returns success status
 int parse_header_info(char *full_msg, msg_header_t *header){
+    memcpy(header, full_msg, 2); //msg type
+    memcpy(header+2, full_msg+2, 4); //user_id
+    memcpy(header+6, full_msg+6, 4); //room_id
+    header->body_length = 0; //this might just be derived from msg type or bytesread
+    
+    //always assume success for now
     return 1;
 }
 
 //will populate the create room msg struct from the byte msg. returns parse success status
 int parse_create_room_msg(char *byte_msg, create_room_msg_t *new_msg){
+    //only header info is necessary right now
     return 1;
 }
 
 //will populate the connect msg from byte msg. returns the parse success status
 int parse_connect_to_container_msg(char *byte_msg, connect_to_container_msg_t *new_msg){
+    //only header info is necessary right now
     return 1;
 }

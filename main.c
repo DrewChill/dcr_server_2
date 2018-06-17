@@ -91,13 +91,13 @@ void *listen_for_create_requests(){
 		msg_header_t header;
 		parse_header_info(data, &header);
 		
-		create_room_msg_t create_room_msg;
-		if(parse_create_room_msg(data, &create_room_msg)<0){
-			//error handler
-		}
+		//create_room_msg_t create_room_msg = malloc(sizeof(create_room_msg_t));
+//		if(parse_create_room_msg(data, &create_room_msg)<0){
+//			//error handler
+//		}
 
-		dj_room_t new_dj_room;
-		if(create_new_dj_room(&create_room_msg, &new_dj_room)<0){
+		dj_room_t new_dj_room = malloc(sizeof(new_dj_room));
+		if(create_new_dj_room(NULL, &new_dj_room)<0){
 			//error handler
 		}
 	

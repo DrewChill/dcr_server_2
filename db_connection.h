@@ -20,13 +20,15 @@ extern "C" {
 
 #include <stdint.h>
 #include "byte_msg_parser.h"
+#include <mysql56/my_global.h>
+#include <mysql.h>
 
 typedef struct{
 	uint32_t room_id;
 } dj_room_t;
 
 //takes the creation info and populates the dj room object. returns success state
-int create_new_dj_room(create_room_msg_t *create_info, dj_room_t *dj_room);
+int create_new_dj_room(msg_header_t header, create_room_msg_t create_info, dj_room_t *dj_room);
 
 
 #ifdef __cplusplus
@@ -34,4 +36,3 @@ int create_new_dj_room(create_room_msg_t *create_info, dj_room_t *dj_room);
 #endif
 
 #endif /* DB_CONNECTION_H */
-
