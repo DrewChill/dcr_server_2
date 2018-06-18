@@ -57,7 +57,7 @@ void *listen_for_create_requests(){
                 exit(1);
         }
 
-	int remoteLen, numBytesRecved;
+	int remoteLen, numBytesRecved, numBytesReturned;
         char data[2048];
         struct sockaddr_in remote;
 
@@ -102,12 +102,16 @@ void *listen_for_create_requests(){
 		}
 	
 		//2. use room id to create distribution container. return connection info for container
-		container_connection_info_t container_connection;
-		if(handle_new_connection_request(new_dj_room->room_id, header->user_id, &container_connection)<0){
+		container_connection_info_t *container_connection = malloc(sizeof(container_connection_info_t));
+		if(handle_new_connection_request(new_dj_room->room_id, header->user_id, container_connection)<0){
 			//error handler
 		}
 
 		//3. send connection info back to user
+		create_room_response_t *response = malloc(sizeof(create_room_response_t));
+		construct_create_room_response_msg(response, 1, container_connection->container_addr, header->user_id, new_dj_room->room_id);
+		
+		numBytesReturned = sendto(sock, response, sizeof(create_room_response_t), 0, (struct sockaddr*)&remote, sizeof(remote));
         }
 }
 

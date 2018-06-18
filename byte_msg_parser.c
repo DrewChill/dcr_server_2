@@ -8,6 +8,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+//will construct a create room response message
+void construct_create_room_response_msg(create_room_response_t *msg, uint8_t status, struct sockaddr_in container_addr, uint32_t user_id, uint32_t room_id){
+    msg_header_t *header = malloc(sizeof(msg_header_t));
+    header->body_length=1+sizeof(struct sockaddr_in);
+    header->msg_type = CREATE_ROOM_RESPONSE_TYPE;
+    header->room_id = room_id;
+    header->user_id = user_id;
+
+    msg->header = *header;
+    msg->status = status;
+    msg->container_addr = container_addr;
+}
+
 //will construct a request response message
 void construct_request_response_msg(request_status_msg_t *msg, uint8_t status, uint32_t user_id, uint32_t room_id){
     msg_header_t *header = malloc(sizeof(msg_header_t));

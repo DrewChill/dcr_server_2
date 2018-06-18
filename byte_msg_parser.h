@@ -20,11 +20,13 @@ extern "C" {
     
 #include <stdlib.h>
 #include <stdint.h>
+#include <netinet/in.h>
 
 #define CREATE_ROOM_TYPE 1
 #define CONNECT_TO_CONTAINER_TYPE 2
 #define PLAYER_CMND_TYPE 3
 #define REQUEST_STATUS_TYPE 50
+#define CREATE_ROOM_RESPONSE_TYPE 51
 
 typedef uint16_t msg_type_t;
 
@@ -54,8 +56,17 @@ typedef struct{
 } request_status_msg_t;
 
 typedef struct{
+	msg_header_t header;
+	uint8_t status;
+	struct sockaddr_in container_addr;
+} create_room_response_t;
+
+typedef struct{
 	
 } player_cmnd_msg_t;
+
+//will construct a create room response
+void construct_create_room_response_msg(create_room_response_t *msg, uint8_t status, struct sockaddr_in container_addr, uint32_t user_id, uint32_t room_id);
 
 //will construct a request response message
 void construct_request_response_msg(request_status_msg_t *msg, uint8_t status, uint32_t user_id, uint32_t room_id);
