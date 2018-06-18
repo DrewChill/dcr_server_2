@@ -195,9 +195,10 @@ void *container_connection_listener(void *dc){
 					char msg_buffer[MAX_MSG_SIZE];
 					int bytesRead;
 					struct sockaddr_in remote;
-
+					
+					socklen_t length = (socklen_t)sizeof(remote);
 					//read data/parse
-					bytesRead = recvfrom(i, msg_buffer, MAX_MSG_SIZE, 0, (struct sockaddr *)&remote, sizeof(remote));
+					bytesRead = recvfrom(i, msg_buffer, MAX_MSG_SIZE, 0, (struct sockaddr *)&remote, &length);
 					if(bytesRead<0){
 						//error handling
 					}else if(bytesRead==0){
