@@ -24,4 +24,4 @@ gcc -c -g -MMD -MP -MF "build/linux/main.o.d" -o build/linux/main.o main.c
 mkdir -p dist/linux
 
 echo "building executable...\n\n"
-gcc -o dist/linux/dcr_server -lm build/linux/byte_msg_parser.o build/linux/db_connection.o build/linux/hashtable.o build/linux/hashtable_itr.o build/linux/hashtable_utility.o build/linux/distribution_container_manager.o build/linux/main.o -lpthread
+gcc -o dist/linux/dcr_server -lm build/linux/byte_msg_parser.o build/linux/db_connection.o build/linux/hashtable.o build/linux/hashtable_itr.o build/linux/hashtable_utility.o build/linux/distribution_container_manager.o build/linux/main.o -lpthread `mysql_config --cflags --libs`

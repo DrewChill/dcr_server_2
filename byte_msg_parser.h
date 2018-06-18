@@ -37,6 +37,7 @@ typedef struct{
 } msg_header_t;
 
 typedef struct{
+	uint8_t is_private;
 	//uint32_t user_id;
 	//initial player state info probably
 } create_room_msg_t;
