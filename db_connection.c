@@ -8,10 +8,10 @@
 #include "string.h"
 
 void init_db_connection(){
-	printf("connecting to database...\n");
+	printf("connecting to database...\n");fflush(stdout);
 	conn = mysql_init(NULL);
 	if(conn == NULL){
-		printf("could not connect to database...exiting");
+		printf("could not connect to database...exiting");fflush(stdout);
 		exit(1);
 	}
 
@@ -21,19 +21,21 @@ void init_db_connection(){
                 exit(1);
         }
 	
-	printf("connected to db...\n");
+	printf("connected to db...\n");fflush(stdout);
 }
 
 int create_new_dj_room(msg_header_t header, create_room_msg_t create_info, dj_room_t *dj_room){
 
 	char query_buffer[1000];
-	snprintf(query_buffer, sizeof(query_buffer), "INSERT INTO `DJ_Room` (`DJ`,`isPrivate`, `public_port`, `private_port`, `public_ip`, `private_ip`) VALUES ('%lu', '%u', '%hu', '%hu', '%lu', '%u') ON DUPLICATE KEY UPDATE `isPrivate`='%u', `public_port`='%hu', `private_port`='%hu', `public_ip`='%lu', `private_ip`='%u'", header.user_id, 0, 0, 0, 0, 0);
+	snprintf(query_buffer, sizeof(query_buffer), "INSERT INTO `DJ_Room` (`DJ`,`isPrivate`, `public_port`, `private_port`, `public_ip`, `private_ip`) VALUES ('%lu', '%u', '%hu', '%hu', '%lu', '%u') ON DUPLICATE KEY UPDATE `isPrivate`='%u', `public_port`='%hu', `private_port`='%hu', `public_ip`='%lu', `private_ip`='%u'", header.user_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 	//TODO: uhh this doesn't seem right
 	char query_string[strlen(query_buffer)+1];
 	memset(query_string, '\0', sizeof(query_string));
 	strcpy(query_string, query_buffer);
 
+	printf("dj:%lu ; query:%s", header.user_id, query_string);fflush(stdout);
+	
 	if(mysql_query(conn, query_string)){
 		//query failed
 		return 0;

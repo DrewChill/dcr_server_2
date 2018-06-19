@@ -35,9 +35,15 @@ void construct_request_response_msg(request_status_msg_t *msg, uint8_t status, u
 
 //will populate the message header info. returns success status
 int parse_header_info(char *full_msg, msg_header_t *header){
-    memcpy(header, full_msg, 2); //msg type
-    memcpy(header+2, full_msg+2, 4); //user_id
-    memcpy(header+6, full_msg+6, 4); //room_id
+    //memcpy(header, full_msg, 2); //msg type
+    //memcpy(header+2, full_msg+2, 4); //user_id
+    //memcpy(header+6, full_msg+6, 4); //room_id
+    uint16_t msg_type;
+    memcpy(&msg_type, full_msg, 2);
+
+    header->msg_type = msg_type;
+    header->user_id = 1;
+    header->room_id = 0;
     header->body_length = 0; //this might just be derived from msg type or bytesread
     
     //always assume success for now

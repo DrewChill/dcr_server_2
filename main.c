@@ -90,22 +90,26 @@ void *listen_for_create_requests(){
 		
 		msg_header_t *header = malloc(sizeof(msg_header_t));
 		parse_header_info(data, header);
-		
+		printf("parsed the header...\n");fflush(stdout);
 		create_room_msg_t *create_room_msg = malloc(sizeof(create_room_msg_t));
 //		if(parse_create_room_msg(data, &create_room_msg)<0){
 //			//error handler
 //		}
+		create_room_msg->is_private=0;
 
 		dj_room_t *new_dj_room = malloc(sizeof(new_dj_room));
 		if(create_new_dj_room(*header, *create_room_msg, new_dj_room)<0){
 			//error handler
 		}
+		printf("\nadded to the db...\n");fflush(stdout);
 	
 		//2. use room id to create distribution container. return connection info for container
 		container_connection_info_t *container_connection = malloc(sizeof(container_connection_info_t));
 		if(handle_new_connection_request(new_dj_room->room_id, header->user_id, container_connection)<0){
 			//error handler
 		}
+
+		printf("created distribution container...\n");
 
 		//3. send connection info back to user
 		create_room_response_t *response = malloc(sizeof(create_room_response_t));
@@ -121,7 +125,23 @@ void *listen_for_create_requests(){
 //}
 
 int main(int argc, char *argv[]){
+	init_distribution_container_manager();
+	init_db_connection();
+
+	int ret = 0;
 
 	//create worker threads
+	pthread_attr_t attr;
+        if((ret = pthread_attr_init(&attr)) != 0){
+                 //error handling
+        }
 
+        if((ret = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE)) != 0){
+                //error handling
+        }
+
+	pthread_t create_listener;
+	pthread_create(&create_listener, &attr, listen_for_create_requests, NULL);
+
+	pthread_join(create_listener, NULL);
 }

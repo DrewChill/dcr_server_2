@@ -116,6 +116,8 @@ request_status_msg_t handle_received_data_at_container(distribution_container *c
 	//check msg type
 	if(msg_header.msg_type == CONNECT_TO_CONTAINER_TYPE){	
 
+	printf("got right message type...\n");fflush(stdout);
+
 	    //parse container connection ack
 	    //connect_to_container_msg_t connect_to_container_msg;
 	    
@@ -127,6 +129,7 @@ request_status_msg_t handle_received_data_at_container(distribution_container *c
 	    void *found;
 	    if(NULL == (found = hashtable_search(&container->route_map, &msg_header.room_id))){
 		    //error handling
+		    printf("route table fucked up...\n");fflush(stdout);
 	    }
 
 	    remote_connection_data_t *remote_data;
@@ -136,6 +139,7 @@ request_status_msg_t handle_received_data_at_container(distribution_container *c
 	    int i;
 	    for(i=0; i<MAX_CONNECTIONS; i++){
 		    if(remote_data->connections[i].user_id == msg_header.user_id){
+				printf("added user to distro...\n");fflush(stdout);
 			    remote_data->connections[i].remote_addr = remote;
 			    remote_data->connections[i].connected_fd = connected_fd;
 			    connected_to_container = 1;
@@ -160,11 +164,20 @@ void *container_connection_listener(void *dc){
 	container = (distribution_container*)dc;
 	
 	int sock = container->sock;
+
+	if(listen(sock, 5)<0){
+		printf("fuuuuck");
+		fflush(stdout);
+	}
+
 	fd_set active_fd_set, read_fd_set;
 
 	//initialize active fd set w/ container socket
 	FD_ZERO(&active_fd_set);
 	FD_SET(sock, &active_fd_set);
+
+	printf("listening for joiners...\n");
+	fflush(stdout);
 
 	while(1){
 		//block until request is received
@@ -188,7 +201,7 @@ void *container_connection_listener(void *dc){
 						//error handling
 					}
 					//TODO: probably verify that it is from an expected ip address. (port would be unknown)
-					printf("connected to %s:%hd\n", inet_ntoa(remote.sin_addr),ntohs(remote.sin_port));fflush(stdout);
+					if(remote.sin_port!=0)printf("connected to %s:%hd\n", inet_ntoa(remote.sin_addr),ntohs(remote.sin_port));fflush(stdout);
 					FD_SET(new, &active_fd_set);
 				}else{
 					//got something from an already connected socket
@@ -205,6 +218,7 @@ void *container_connection_listener(void *dc){
 						//wut? don't anything I guess
 					}else{
 						//handle_received
+						printf("handling join request...\n");fflush(stdout);
 						request_status_msg_t response = handle_received_data_at_container(container, msg_buffer, remote, i);
 						send(i,&response,sizeof(request_status_msg_t),0);
 					}
