@@ -201,7 +201,8 @@ void *container_connection_listener(void *dc){
 						//error handling
 					}
 					//TODO: probably verify that it is from an expected ip address. (port would be unknown)
-					if(remote.sin_port!=0)printf("connected to %s:%hd\n", inet_ntoa(remote.sin_addr),ntohs(remote.sin_port));fflush(stdout);
+					if(remote.sin_port!=0)
+					printf("connected to %s:%hu\n", inet_ntoa(remote.sin_addr),ntohs(remote.sin_port));fflush(stdout);
 					FD_SET(new, &active_fd_set);
 				}else{
 					//got something from an already connected socket
