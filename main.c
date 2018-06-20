@@ -115,7 +115,17 @@ void *listen_for_create_requests(){
 		create_room_response_t *response = malloc(sizeof(create_room_response_t));
 		construct_create_room_response_msg(response, 1, container_connection->container_addr, header->user_id, new_dj_room->room_id);
 		
-		numBytesReturned = sendto(sock, response, sizeof(create_room_response_t), 0, (struct sockaddr*)&remote, sizeof(remote));
+		unsigned char buffer[21];
+		memcpy(buffer, &response->header.msg_type, 2);
+		memcpy(buffer+2, &response->header.user_id, 4);
+		memcpy(buffer+6, &response->header.room_id, 4);
+		memcpy(buffer+10, &response->header.body_length, 4);
+		memcpy(buffer+14, &response->status, 1);
+		short host_order = ntohs(response->container_addr.sin_port);
+		memcpy(buffer+15, &host_order, 2);
+		memcpy(buffer+17, &response->container_addr.sin_addr.s_addr, 4);
+	
+		numBytesReturned = sendto(sock, buffer, 21, 0, (struct sockaddr*)&remote, sizeof(remote));
         }
 }
 

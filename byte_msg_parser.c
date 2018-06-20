@@ -7,17 +7,21 @@
 #include "byte_msg_parser.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 //will construct a create room response message
 void construct_create_room_response_msg(create_room_response_t *msg, uint8_t status, struct sockaddr_in container_addr, uint32_t user_id, uint32_t room_id){
-    msg_header_t *header = malloc(sizeof(msg_header_t));
-    header->body_length=1+sizeof(struct sockaddr_in);
-    header->msg_type = CREATE_ROOM_RESPONSE_TYPE;
-    header->room_id = room_id;
-    header->user_id = user_id;
+    msg_header_t header;
+    header.body_length=1+sizeof(struct sockaddr_in);
+    header.msg_type = CREATE_ROOM_RESPONSE_TYPE;
+    printf("user_id:%u\n",user_id);fflush(stdout);
+    printf("room_id:%u\n",room_id);fflush(stdout);
+    header.room_id = room_id;
+    header.user_id = user_id;
 
-    msg->header = *header;
+    msg->header = header;
     msg->status = status;
+    //printf("%d",sizeof(container_addr));fflush(stdout);
     msg->container_addr = container_addr;
 }
 
@@ -41,9 +45,15 @@ int parse_header_info(char *full_msg, msg_header_t *header){
     uint16_t msg_type;
     memcpy(&msg_type, full_msg, 2);
 
+    uint32_t user_id;
+    memcpy(&user_id, full_msg+2, 4);
+
+    uint32_t room_id;
+    memcpy(&room_id, full_msg+6, 4);
+
     header->msg_type = msg_type;
-    header->user_id = 1;
-    header->room_id = 0;
+    header->user_id = user_id;
+    header->room_id = room_id;
     header->body_length = 0; //this might just be derived from msg type or bytesread
     
     //always assume success for now
