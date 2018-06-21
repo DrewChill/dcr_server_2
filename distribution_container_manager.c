@@ -82,10 +82,13 @@ static void create_new_distribution_container(distribution_container *new_contai
     struct hashtable *h;
     h = create_hashtable(5, route_map_hashfromkey, route_map_equalkeys);
 
+    //container_recv_data_t *recv_data = malloc(sizeof(container_recv_data_t));
+
     //populate container
     new_container->sock = sock;
     new_container->active_connection_count = 0;
     new_container->connection_info.container_addr = addr; //use memcpy here?
+    //memcpy(&new_container->recv_data, recv_data, sizeof(container_recv_data_t));
     memcpy(&new_container->route_map, h, sizeof(struct hashtable));
 }
 
@@ -337,6 +340,8 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         pthread_cond_init(&new_container.recv_data.buffer_has_data, NULL);
         pthread_cond_init(&new_container.recv_data.buffer_full, NULL);
 
+        //new_container.recv_data.recv_buffer = malloc(2048);
+
         new_state->container = new_container;
 
         //start threads
@@ -402,10 +407,11 @@ void handle_incoming_data(msg_header_t header, char *data){
         existing_state = (container_state *) found;
         distribution_container *container = &existing_state->container;
 
+        container->recv_data[0] = 1;
         printf("acquiring receive mutex...\n");fflush(stdout);
         pthread_mutex_lock(&container->recv_data.recv_lock);
         printf("filling ditribution data buffer...%d\n", container->recv_data.head);fflush(stdout);
-        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, header.msg_length);
+        memcpy(container->recv_data.recv_buffer[container->recv_data.head], data, header.msg_length);
         container->recv_data.head += header.msg_length;
         printf("well shit...\n");
         pthread_cond_signal(&container->recv_data.buffer_has_data);
