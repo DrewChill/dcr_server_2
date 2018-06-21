@@ -254,7 +254,7 @@ void *container_distribute_recv_data(void *dc) {
             printf("recognized data to distribute...\n");fflush(stdout);
             //get the next header from the buffer
             msg_header_t next_header;
-            parse_header_info(*container->recv_data.recv_buffer + container->recv_data.tail, &next_header);
+            parse_header_info(&container->recv_data.recv_buffer[container->recv_data.tail], &next_header);
 
 
             //grab message body from the buffer. (some messages may just have the header info)
@@ -281,7 +281,7 @@ void *container_distribute_recv_data(void *dc) {
                     if (connected_socket > 0) {
 
                         int bytes_sent = send(connected_socket,
-                                              container->recv_data.recv_buffer[container->recv_data.tail],
+                                              &container->recv_data.recv_buffer[container->recv_data.tail],
                                               sizeof(msg_header_t) + next_header.msg_length, 0);
                         printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
                     } else {
@@ -411,7 +411,7 @@ void handle_incoming_data(msg_header_t header, char *data){
         printf("acquiring receive mutex...\n");fflush(stdout);
         pthread_mutex_lock(&container->recv_data.recv_lock);
         printf("filling ditribution data buffer...%d\n", container->recv_data.head);fflush(stdout);
-        memcpy(container->recv_data.recv_buffer[container->recv_data.head], data, header.msg_length);
+        memcpy(&container->recv_data.recv_buffer[container->recv_data.head], data, header.msg_length);
         container->recv_data.head += header.msg_length;
         printf("well shit...\n");
         pthread_cond_signal(&container->recv_data.buffer_has_data);
