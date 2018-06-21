@@ -280,7 +280,7 @@ void *container_distribute_recv_data(void *dc) {
                         int bytes_sent = send(connected_socket,
                                               container->recv_data.recv_buffer[container->recv_data.tail],
                                               sizeof(msg_header_t) + next_header.msg_length, 0);
-                        printf("sent client %d bytes...\n");printf(stdout);
+                        printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
                     } else {
                         //it's probably waiting to get the connection request or there was an error
                     }

@@ -12,7 +12,7 @@
 //will construct a create room response message
 void construct_create_room_response_msg(create_room_response_t *msg, uint8_t status, struct sockaddr_in container_addr, uint32_t user_id, uint32_t room_id){
     msg_header_t header;
-    header.msg_length_length=1+6+HEADER_LENGTH;//1 for the status/6 for connection info
+    header.msg_length=1+6+HEADER_LENGTH;//1 for the status/6 for connection info
     header.msg_type = CREATE_ROOM_RESPONSE_TYPE;
     printf("user_id:%u\n",user_id);fflush(stdout);
     printf("room_id:%u\n",room_id);fflush(stdout);
