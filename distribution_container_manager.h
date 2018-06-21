@@ -78,8 +78,8 @@ void init_distribution_container_manager();
 //  -returns a status
 int handle_new_connection_request(uint32_t room_id, uint32_t user_id, container_connection_info_t *continer_connection_info);
 
-//create a new distribution container
-//static void create_new_distribution_container(distribution_container_t *new_container_info);
+//pass data to the appropriate distribution container
+void handle_incoming_data(msg_header_t header, char *data);
 
 
 #ifdef __cplusplus

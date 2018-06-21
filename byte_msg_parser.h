@@ -29,13 +29,15 @@ extern "C" {
 #define REQUEST_STATUS_TYPE 50
 #define CREATE_ROOM_RESPONSE_TYPE 51
 
+#define HEADER_LENGTH 14
+
 typedef uint16_t msg_type_t;
 
 typedef struct{
 	msg_type_t msg_type;
 	uint32_t user_id;
 	uint32_t room_id; //0 when creating room
-	size_t body_length;
+	size_t msg_length;
 	//maybe some other stuff in the future
 } msg_header_t;
 

@@ -193,19 +193,19 @@ void *container_connection_listener(void *dc) {
         for (i = 0; i < FD_SETSIZE; i++) {
             if (FD_ISSET(i, &read_fd_set)) {
                 if (i == sock) {
-                    int new;
+                    int new_conn;
                     struct sockaddr_in remote;
                     size_t size = sizeof(remote);
                     //accept the new connection
-                    new = accept(sock, (struct sockaddr *) &remote, &size);
-                    if (new < 0) {
+                    new_conn = accept(sock, (struct sockaddr *) &remote, &size);
+                    if (new_conn < 0) {
                         //error handling
                     }
                     //TODO: probably verify that it is from an expected ip address. (port would be unknown)
                     if (remote.sin_port != 0)
                         printf("connected to %s:%hu\n", inet_ntoa(remote.sin_addr), ntohs(remote.sin_port));
                     fflush(stdout);
-                    FD_SET(new, &active_fd_set);
+                    FD_SET(new_conn, &active_fd_set);
                 } else {
                     //got something from an already connected socket
                     char msg_buffer[MAX_MSG_SIZE];
@@ -245,9 +245,10 @@ void *container_distribute_recv_data(void *dc) {
     while (1) {
         //wait until buffer has data to distribute
         pthread_cond_wait(&container->recv_data.buffer_has_data, &container->recv_data.recv_lock);
-
+        printf("attempting to distribute data...\n");fflush(stdout);
         //distribute all available data
-        while (container->recv_data.tail != container->recv_data.head) {
+        while (container->recv_data.tail < container->recv_data.head) {
+            printf("recognized data to distribute...\n");fflush(stdout);
             //get the next header from the buffer
             msg_header_t next_header;
             parse_header_info(*container->recv_data.recv_buffer + container->recv_data.tail, &next_header);
@@ -255,8 +256,8 @@ void *container_distribute_recv_data(void *dc) {
 
             //grab message body from the buffer. (some messages may just have the header info)
             if (0) { //this actually might not be necessary
-                char *next_body = malloc(sizeof(char) * next_header.body_length);
-                memcpy(next_body, container->recv_data.recv_buffer[container->recv_data.tail], next_header.body_length);
+                char *next_body = malloc(sizeof(char) * next_header.header.msg_lengthheader.msg_length);
+                memcpy(next_body, container->recv_data.recv_buffer[container->recv_data.tail], next_header.header.msg_length);
 
             }
 
@@ -272,12 +273,14 @@ void *container_distribute_recv_data(void *dc) {
                 for (i = 0; i < remote_data->connection_count; i++) {
                     //send the data to each connected socket
                     int connected_socket = remote_data->connections[i].connected_fd;
-
+                    printf("checking if client is connected...\n");fflush(stdout);
                     //check if it's actually connected yet
                     if (connected_socket > 0) {
+
                         int bytes_sent = send(connected_socket,
                                               container->recv_data.recv_buffer[container->recv_data.tail],
-                                              sizeof(msg_header_t) + next_header.body_length, 0);
+                                              sizeof(msg_header_t) + next_header.header.msg_length, 0);
+                        printf("sent client %d bytes...\n");printf(stdout);
                     } else {
                         //it's probably waiting to get the connection request or there was an error
                     }
@@ -285,10 +288,11 @@ void *container_distribute_recv_data(void *dc) {
             }
 
             //move tail up. TODO: circular buffer
-            container->recv_data.tail += (sizeof(msg_header_t) + next_header.body_length);
+            container->recv_data.tail += (sizeof(msg_header_t) + next_header.header.msg_length);
         }
 
         //finished sending all the data. buffer can be filled again
+        pthread_mutex_unlock(&container->recv_data.recv_lock);
     }
 }
 
@@ -385,4 +389,26 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
 
     EXIT:
     return ret;
+}
+
+void handle_incoming_data(msg_header_t header, char *data){
+    void *found;
+    if(NULL == (found = hashtable_search(&distribution_containers_for_room_id, &header.room_id))){
+        //error handling
+        printf("failed to find container for data distibution\n");fflush(stdout);
+    }else{
+        //pass data to appropriate container to distribute
+        container_state *existing_state;
+        existing_state = (container_state *) found;
+        distribution_container *container = &existing_state->container;
+
+        printf("acquiring receive mutex...\n");fflush(stdout);
+        pthread_mutex_lock(&container.recv_data.recv_lock);
+        printf("filling ditribution data buffer...\n");fflush(stdout);
+        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, header.msg_length);
+        container->recv_data.head += header.header.msg_length;
+
+        pthread_cond_signal(&container->recv_data.buffer_has_data);
+        pthread_mutex_unlock(&container->recv_data.recv_lock);
+    }
 }

@@ -124,7 +124,7 @@ void *listen_for_create_requests() {
             memcpy(buffer, &response->header.msg_type, 2);
             memcpy(buffer + 2, &response->header.user_id, 4);
             memcpy(buffer + 6, &response->header.room_id, 4);
-            memcpy(buffer + 10, &response->header.body_length, 4);
+            memcpy(buffer + 10, &response->header.msg_length, 4);
             memcpy(buffer + 14, &response->status, 1);
             short host_order = ntohs(response->container_addr.sin_port);
             memcpy(buffer + 15, &host_order, 2);
@@ -147,7 +147,7 @@ void *listen_for_create_requests() {
             memcpy(buffer, &response->header.msg_type, 2);
             memcpy(buffer + 2, &response->header.user_id, 4);
             memcpy(buffer + 6, &response->header.room_id, 4);
-            memcpy(buffer + 10, &response->header.body_length, 4);
+            memcpy(buffer + 10, &response->header.msg_length, 4);
             memcpy(buffer + 14, &response->status, 1);
             short host_order = ntohs(response->container_addr.sin_port);
             memcpy(buffer + 15, &host_order, 2);
@@ -155,6 +155,9 @@ void *listen_for_create_requests() {
 
             numBytesReturned = sendto(sock, buffer, 21, 0, (struct sockaddr *) &remote, sizeof(remote));
 
+        } else if(header->msg_type == PLAYER_CMND_TYPE){
+            printf("attempting to distribute data...\n");fflush(stdout);
+            handle_incoming_data(header, data);
         }
 
     }
