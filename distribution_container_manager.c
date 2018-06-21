@@ -404,10 +404,10 @@ void handle_incoming_data(msg_header_t header, char *data){
 
         printf("acquiring receive mutex...\n");fflush(stdout);
         pthread_mutex_lock(&container->recv_data.recv_lock);
-        printf("filling ditribution data buffer...%d\n", header.msg_length);fflush(stdout);
+        printf("filling ditribution data buffer...%d\n", container->recv_data.head);fflush(stdout);
         memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, header.msg_length);
         container->recv_data.head += header.msg_length;
-
+        printf("well shit...\n");
         pthread_cond_signal(&container->recv_data.buffer_has_data);
         pthread_mutex_unlock(&container->recv_data.recv_lock);
     }
