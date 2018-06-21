@@ -157,7 +157,7 @@ void *listen_for_create_requests() {
 
         } else if(header->msg_type == PLAYER_CMND_TYPE){
             printf("attempting to distribute data...\n");fflush(stdout);
-            handle_incoming_data(header, data);
+            handle_incoming_data(*header, data);
         }
 
     }

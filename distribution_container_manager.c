@@ -256,8 +256,8 @@ void *container_distribute_recv_data(void *dc) {
 
             //grab message body from the buffer. (some messages may just have the header info)
             if (0) { //this actually might not be necessary
-                char *next_body = malloc(sizeof(char) * next_header.header.msg_lengthheader.msg_length);
-                memcpy(next_body, container->recv_data.recv_buffer[container->recv_data.tail], next_header.header.msg_length);
+                //char *next_body = malloc(sizeof(char) * next_header.header.msg_lengthheader.msg_length);
+                //memcpy(next_body, container->recv_data.recv_buffer[container->recv_data.tail], next_header.header.msg_length);
 
             }
 
@@ -279,7 +279,7 @@ void *container_distribute_recv_data(void *dc) {
 
                         int bytes_sent = send(connected_socket,
                                               container->recv_data.recv_buffer[container->recv_data.tail],
-                                              sizeof(msg_header_t) + next_header.header.msg_length, 0);
+                                              sizeof(msg_header_t) + next_header.msg_length, 0);
                         printf("sent client %d bytes...\n");printf(stdout);
                     } else {
                         //it's probably waiting to get the connection request or there was an error
@@ -288,7 +288,7 @@ void *container_distribute_recv_data(void *dc) {
             }
 
             //move tail up. TODO: circular buffer
-            container->recv_data.tail += (sizeof(msg_header_t) + next_header.header.msg_length);
+            container->recv_data.tail += (sizeof(msg_header_t) + next_header.msg_length);
         }
 
         //finished sending all the data. buffer can be filled again
@@ -403,10 +403,10 @@ void handle_incoming_data(msg_header_t header, char *data){
         distribution_container *container = &existing_state->container;
 
         printf("acquiring receive mutex...\n");fflush(stdout);
-        pthread_mutex_lock(&container.recv_data.recv_lock);
+        pthread_mutex_lock(&container->recv_data.recv_lock);
         printf("filling ditribution data buffer...\n");fflush(stdout);
         memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, header.msg_length);
-        container->recv_data.head += header.header.msg_length;
+        container->recv_data.head += header.msg_length;
 
         pthread_cond_signal(&container->recv_data.buffer_has_data);
         pthread_mutex_unlock(&container->recv_data.recv_lock);
