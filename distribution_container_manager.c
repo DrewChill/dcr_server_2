@@ -193,8 +193,7 @@ void *container_connection_listener(void *dc) {
         for (i = 0; i < FD_SETSIZE; i++) {
             if (FD_ISSET(i, &read_fd_set)) {
                 if (i == sock) {
-                    int
-                    new;
+                    int new;
                     struct sockaddr_in remote;
                     size_t size = sizeof(remote);
                     //accept the new connection
@@ -213,8 +212,7 @@ void *container_connection_listener(void *dc) {
                     int bytesRead;
                     struct sockaddr_in remote;
 
-                    socklen_t
-                    length = (socklen_t)
+                    socklen_t length = (socklen_t);
                     sizeof(remote);
                     //read data/parse
                     bytesRead = recvfrom(i, msg_buffer, MAX_MSG_SIZE, 0, (struct sockaddr *) &remote, &length);
