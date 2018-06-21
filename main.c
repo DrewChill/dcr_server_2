@@ -141,7 +141,7 @@ void *listen_for_create_requests() {
 
             create_room_response_t *response = malloc(sizeof(create_room_response_t));
             construct_create_room_response_msg(response, 1, container_connection->container_addr, header->user_id,
-                                               new_dj_room->room_id);
+                                               header->room_id);
 
             unsigned char buffer[21];
             memcpy(buffer, &response->header.msg_type, 2);
