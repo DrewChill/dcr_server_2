@@ -37,7 +37,7 @@ typedef struct{
 //-------
 
 typedef struct{
-	char recv_buffer[2048];
+	char *recv_buffer;
 	int head;
 	int tail;
 	pthread_mutex_t recv_lock;
