@@ -404,7 +404,7 @@ void handle_incoming_data(msg_header_t header, char *data){
 
         printf("acquiring receive mutex...\n");fflush(stdout);
         pthread_mutex_lock(&container->recv_data.recv_lock);
-        printf("filling ditribution data buffer...\n");fflush(stdout);
+        printf("filling ditribution data buffer...%d\n", header.msg_length);fflush(stdout);
         memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, header.msg_length);
         container->recv_data.head += header.msg_length;
 

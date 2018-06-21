@@ -82,7 +82,7 @@ void *listen_for_create_requests() {
         int port = ntohs(remote.sin_port);
 
         //print sender addr
-        printf("Got request from %s:%d\n", addr, port);
+        printf("Got %d request from %s:%d\n", numBytesRecved, addr, port);
         fflush(stdout);
 
         //handle the request
