@@ -425,9 +425,9 @@ void handle_incoming_data(msg_header_t header, char *data){
 //         * However, after the operation, the iterator is broken.
 //         */
 //    } while (hashtable_iterator_advance(itr));
-
+uint32_t test = 123;
     void *found;
-    if(NULL == (found = hashtable_search(&distribution_containers_for_room_id, &header.room_id))){
+    if(NULL == (found = hashtable_search(&distribution_containers_for_room_id, &test))){
         //error handling
         printf("failed to find container for data distibution\n");fflush(stdout);
     }else{
