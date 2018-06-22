@@ -15,7 +15,8 @@
 #define DISTRIBUTION_CONTAINER_MANAGER_H
 
 #include <stdint.h>
-#include "hashtable/hashtable_private.h"
+#include "hashtable/hashtable.h"
+#include "hashtable/hashtable_itr.h"
 #include "byte_msg_parser.h"
 
 #ifdef __cplusplus

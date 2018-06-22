@@ -2,13 +2,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 //#include <stdint.h>
 #include <pthread.h>
-#include "hashtable/hashtable_itr.h"
+//#include "hashtable/hashtable_itr.h"
 #include "distribution_container_manager.h"
 
 #define MAX_MSG_SIZE 256
@@ -418,7 +419,6 @@ void handle_incoming_data(msg_header_t header, char *data){
          * 'free's k and returns v.
          * However, after the operation, the iterator is broken.
          */
-
     } while (hashtable_iterator_advance(itr));
 
     void *found;
