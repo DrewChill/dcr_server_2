@@ -398,7 +398,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
 }
 
 void handle_incoming_data(msg_header_t header, char *data){
-    printf("looking for table w/ room id:%u", header.room_id);
+    printf("looking for table w/ room id:%u", header.room_id);fflush(stdout);
     void *found;
     if(NULL == (found = hashtable_search(&distribution_containers_for_room_id, &header.room_id))){
         //error handling
