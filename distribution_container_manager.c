@@ -34,6 +34,10 @@ csfrn_hashfromkey(void *ky) {
 
 static int
 csfrn_equalkeys(void *k1, void *k2) {
+    uint32_t *room1, *room2;
+    room1 = (uint32_t*)k1;
+    room2 = (uint32_t*)k2;
+    printf("comparing keys %u%u", *room1, *room2);
     return (0 == memcmp(k1, k2, sizeof(uint32_t)));
 }
 
