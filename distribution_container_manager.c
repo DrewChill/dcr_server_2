@@ -8,7 +8,7 @@
 #include <arpa/inet.h>
 //#include <stdint.h>
 #include <pthread.h>
-#include "hashtable_itr.h"
+#include "hashtable/hashtable_itr.h"
 #include "distribution_container_manager.h"
 
 #define MAX_MSG_SIZE 256
