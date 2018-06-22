@@ -400,6 +400,26 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
 void handle_incoming_data(msg_header_t header, char *data){
     printf("table has %d entries\n", hashtable_count(&distribution_containers_for_room_id));fflush(stdout);
     printf("looking for table w/ room id:%u\n", header.room_id);fflush(stdout);
+
+    struct hashtable_itr *itr;
+    itr = hashtable_iterator(&distribution_containers_for_room_id);
+
+    do {
+        container_state *value;
+        uint32_t *key;
+        key = hashtable_iterator_key(itr);
+        value = hashtable_iterator_value(itr);
+
+        printf("value %u\n", *key);fflush(stdout);
+        printf("active connections %d\n", value->container.active_connection_count);fflush(stdout);
+        /* here (k,v) are a valid (key, value) pair */
+        /* We could call 'hashtable_remove(h,k)' - and this operation
+         * 'free's k and returns v.
+         * However, after the operation, the iterator is broken.
+         */
+
+    } while (hashtable_iterator_advance(itr));
+
     void *found;
     if(NULL == (found = hashtable_search(&distribution_containers_for_room_id, &header.room_id))){
         //error handling
