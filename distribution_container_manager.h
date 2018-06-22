@@ -37,7 +37,7 @@ typedef struct{
 //-------
 
 typedef struct{
-	char *recv_buffer;
+	char recv_buffer[2048];
 	int head;
 	int tail;
 	pthread_mutex_t recv_lock;
@@ -51,11 +51,11 @@ typedef struct{
 } remote_connection_data_t;
 
 typedef struct{
-        int sock;
+	int sock;
 	int active_connection_count;
-        container_connection_info_t connection_info;
+	container_connection_info_t connection_info;
 	container_recv_data_t recv_data;
-        struct hashtable route_map; //keys: room id
+	struct hashtable route_map; //keys: room id
                                    //values: remote connection connection info
 } distribution_container;
 
