@@ -37,7 +37,7 @@ csfrn_equalkeys(void *k1, void *k2) {
     uint32_t *room1, *room2;
     room1 = (uint32_t*)k1;
     room2 = (uint32_t*)k2;
-    printf("comparing keys %u/%u", *room1, *room2);
+    printf("comparing keys %u/%u", *room1, *room2);fflush(stdout);
     return (0 == memcmp(k1, k2, sizeof(uint32_t)));
 }
 
@@ -55,6 +55,10 @@ route_map_hashfromkey(void *ky) {
 //
 static int
 route_map_equalkeys(void *k1, void *k2) {
+    uint32_t *room1, *room2;
+    room1 = (uint32_t*)k1;
+    room2 = (uint32_t*)k2;
+    printf("comparing keys %u/%u", *room1, *room2);fflush(stdout);
     return (0 == memcmp(k1, k2, sizeof(uint32_t)));
 }
 
