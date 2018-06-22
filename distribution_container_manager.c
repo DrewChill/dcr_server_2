@@ -229,6 +229,7 @@ void *container_connection_listener(void *dc) {
                         fflush(stdout);
                         request_status_msg_t response = handle_received_data_at_container(container, msg_buffer, remote,
                                                                                           i);
+                        //TODO: not send this stupid fucking packed struct
                         send(i, &response, sizeof(request_status_msg_t), 0);
                     }
                 }
@@ -405,16 +406,21 @@ void handle_incoming_data(msg_header_t header, char *data){
         //pass data to appropriate container to distribute
         container_state *existing_state;
         existing_state = (container_state *) found;
-        distribution_container *container = &existing_state->container;
+        distribution_container container = existing_state->container;
 
-        container->recv_data.recv_buffer[0] = 1;
+        container.recv_data.recv_buffer[18] = 1;
         printf("acquiring receive mutex...\n");fflush(stdout);
-        pthread_mutex_lock(&container->recv_data.recv_lock);
+        pthread_mutex_lock(&container.recv_data.recv_lock);
         printf("filling ditribution data buffer...%d\n", header.msg_length);fflush(stdout);
-        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, header.msg_length);
+        char buffer[4];
+        buffer[0]=1;
+        buffer[1]=2;
+        buffer[2]=3;
+        buffer[3]=4;
+        memcpy(container.recv_data.recv_buffer+container.recv_data.head, data, header.msg_length);
         container->recv_data.head += header.msg_length;
         printf("well shit...\n");
-        pthread_cond_signal(&container->recv_data.buffer_has_data);
-        pthread_mutex_unlock(&container->recv_data.recv_lock);
+        pthread_cond_signal(&container.recv_data.buffer_has_data);
+        pthread_mutex_unlock(&container.recv_data.recv_lock);
     }
 }
