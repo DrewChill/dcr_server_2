@@ -418,7 +418,7 @@ void handle_incoming_data(msg_header_t header, char *data){
         buffer[2]=3;
         buffer[3]=4;
         memcpy(container.recv_data.recv_buffer+container.recv_data.head, data, header.msg_length);
-        container->recv_data.head += header.msg_length;
+        container.recv_data.head += header.msg_length;
         printf("well shit...\n");
         pthread_cond_signal(&container.recv_data.buffer_has_data);
         pthread_mutex_unlock(&container.recv_data.recv_lock);
