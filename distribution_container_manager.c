@@ -11,6 +11,7 @@
 #include "distribution_container_manager.h"
 
 #define MAX_MSG_SIZE 256
+#define on_error(...) { fprintf(stderr, __VA_ARGS__); fflush(stderr); exit(1); }
 
 //TODO:better method for finding a free port when creating new container. for now, increment this after new creation
 int next_free_port = 20000;
@@ -278,9 +279,12 @@ void *container_distribute_recv_data(void *dc) {
                     if (connected_socket > 0) {
 
                         int bytes_sent = send(connected_socket,
-                                              container->recv_data.recv_buffer[container->recv_data.tail],
+                                              (*container).recv_data.recv_buffer + container->recv_data.tail,
                                               17, 0);
                         printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
+                        if(bytes_sent<0){
+                            on_error("Client write failed\n");
+                        }
                     } else {
                         //it's probably waiting to get the connection request or there was an error
                     }
