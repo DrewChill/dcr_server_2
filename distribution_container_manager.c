@@ -366,12 +366,10 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
             //error handling
         }
 
-        uint32_t *fuck = malloc(4);
-        memcpy(fuck, &room_id, 4);
-
-        printf("inserting room numbr:%u\n", *fuck);fflush(stdout);
+        printf("inserting room numbr:%u\n", room_id);fflush(stdout);
         //insert new state into hashtable.
-        if (!hashtable_insert(&distribution_containers_for_room_id, fuck, new_state)) {
+        if (!hashtable_insert(&distribution_containers_for_room_id, &room_id, new_state)) {
+            printf("failed to insert thing\n");fflush(stdout);
             ret = -1;
             //goto(EXIT);
         }
