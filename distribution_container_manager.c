@@ -144,7 +144,9 @@ handle_received_data_at_container(distribution_container *container, char *data,
                 fflush(stdout);
                 remote_data->connections[i].remote_addr = remote;
                 remote_data->connections[i].connected_fd = connected_fd;
-                remote_data->connection_count++;
+                printf("Connection count here: %d", remote_data->connection_count);fflush(stdout);
+                remote_data->connection_count = remote_data->connection_count+1;
+                printf("Connection count here: %d", remote_data->connection_count);fflush(stdout);
                 connected_to_container = 1;
             }
         }
@@ -270,7 +272,7 @@ void *container_distribute_recv_data(void *dc) {
             } else {
                 remote_connection_data_t *remote_data;
                 remote_data = (remote_connection_data_t *) found;
-                printf("remote connection count: %d", remote_data->connection_count);
+                printf("remote connection count: %d\n", remote_data->connection_count);
                 int i;
                 for (i = 0; i < remote_data->connection_count; i++) {
                     //send the data to each connected socket
