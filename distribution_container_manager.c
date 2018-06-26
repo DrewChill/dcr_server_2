@@ -309,7 +309,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         create_new_distribution_container(&new_container);
 
         //add user that created it to the intial route map
-        remote_connection_data_t *remote_connection_data = malloc(sizeof(remote_connection_data));
+        remote_connection_data_t *remote_connection_data = calloc(1, sizeof(remote_connection_data));
         remote_connection_data->connections[0].user_id = user_id;
         remote_connection_data->connections[0].connected_fd = -1; //not connected
         remote_connection_data->connection_count = 1;

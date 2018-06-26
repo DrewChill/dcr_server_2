@@ -22,10 +22,12 @@ extern "C" {
 #include <stdint.h>
 #include <netinet/in.h>
 
-#define CREATE_ROOM_TYPE 1
-#define CONNECT_TO_CONTAINER_TYPE 2
-#define JOIN_ROOM_REQUEST 3
-#define PLAYER_CMND_TYPE 4
+#define CREATE_ROOM_TYPE 1 //UDP
+#define CONNECT_TO_CONTAINER_TYPE 2 //TCP
+#define JOIN_ROOM_REQUEST 3 //UDP
+#define PLAYER_CMND_TYPE 4 //UDP
+
+
 #define REQUEST_STATUS_TYPE 50
 #define CREATE_ROOM_RESPONSE_TYPE 51
 
@@ -34,10 +36,10 @@ extern "C" {
 typedef uint16_t msg_type_t;
 
 typedef struct{
-	msg_type_t msg_type;
-	uint32_t user_id;
-	uint32_t room_id; //0 when creating room
-	size_t msg_length;
+	msg_type_t msg_type; //2 bytes
+	uint32_t user_id; // 4 byte
+	uint32_t room_id; //0 when creating room. 4 bytes
+	size_t msg_length; //4 bytes
 	//maybe some other stuff in the future
 } msg_header_t;
 
