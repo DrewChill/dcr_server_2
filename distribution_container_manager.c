@@ -384,7 +384,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
                 int next_connection = remote_connection_data->connection_count;
                 remote_connection_data->connections[next_connection].user_id = user_id;
                 remote_connection_data->connections[next_connection].connected_fd = -1;
-                printf("why is this here?");fflush(stdout);
+                //printf("why is this here?");fflush(stdout);
                 remote_connection_data->connection_count++;
             } else {
                 //create a new container to add it to. (or add to existing w/ space)
@@ -417,8 +417,8 @@ void handle_incoming_data(msg_header_t header, char *data){
         //memcpy(container->recv_data.recv_buffer+container->recv_data.head, &test, 4);
         //char empty[17];
         //memcpy(empty, data, 17);
-        printf("filling ditribution data buffer...%d\n", header.msg_length);fflush(stdout);
-        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, 17);
+        printf("filling ditribution data buffer...%u\n", header.msg_length);fflush(stdout);
+        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, header.msg_length);
         //printf("wait...\n");fflush(stdout);
         container->recv_data.head += header.msg_length;
 
