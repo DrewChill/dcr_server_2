@@ -169,6 +169,7 @@ hashtable_search(struct hashtable *h, void *k)
     e = h->table[index];
     while (NULL != e)
     {
+        printf("hash key: %u\n", *(uint32_t*)e->k);
         /* Check hash value to short circuit heavier comparison */
         if ((hashvalue == e->h) && (h->eqfn(k, e->k))) return e->v;
         e = e->next;
