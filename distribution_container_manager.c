@@ -252,7 +252,7 @@ void *container_distribute_recv_data(void *dc) {
             //get the next header from the buffer
             msg_header_t next_header;
             parse_header_info((*container).recv_data.recv_buffer + container->recv_data.tail, &next_header);
-            printf("nice...\n");fflush(stdout);
+            printf("nice...%u\n", next_header.msg_type);fflush(stdout);
 
             //grab message body from the buffer. (some messages may just have the header info)
             if (0) { //this actually might not be necessary
@@ -279,7 +279,7 @@ void *container_distribute_recv_data(void *dc) {
 
                         int bytes_sent = send(connected_socket,
                                               container->recv_data.recv_buffer[container->recv_data.tail],
-                                              sizeof(msg_header_t) + next_header.msg_length, 0);
+                                              17, 0);
                         printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
                     } else {
                         //it's probably waiting to get the connection request or there was an error
