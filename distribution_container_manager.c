@@ -375,7 +375,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         }
 
         //populate container connection info before returning
-        memcpy(container_connection_info, &new_state->container.connection_info, sizeof(container_connection_info_t));
+        memcpy(container_connection_info, &new_state->container->connection_info, sizeof(container_connection_info_t));
     } else {
         //check if existing distribution containers have space, create new if not
         container_state *existing_state;
@@ -433,7 +433,7 @@ void handle_incoming_data(msg_header_t header, char *data){
         buffer[2]=3;
         buffer[3]=4;
         uint32_t test = 32;
-        memcpy(container->recv_data.recv_buffer+container.recv_data.head, &test, 4);
+        memcpy(container->recv_data.recv_buffer+container->recv_data.head, &test, 4);
         printf("seg fault bitch\n");fflush(stdout);
         memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, header.msg_length);
         container->recv_data.head += header.msg_length;
