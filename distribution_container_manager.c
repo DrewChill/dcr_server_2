@@ -417,8 +417,9 @@ void handle_incoming_data(msg_header_t header, char *data){
         //memcpy(container->recv_data.recv_buffer+container->recv_data.head, &test, 4);
         //char empty[17];
         //memcpy(empty, data, 17);
-        printf("filling ditribution data buffer...%u\n", header.msg_length);fflush(stdout);
-        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, header.msg_length);
+        int fuckyou = header.msg_length;
+        printf("filling ditribution data buffer...%d\n", fuckyou);fflush(stdout);
+        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, fuckyou);
         //printf("wait...\n");fflush(stdout);
         container->recv_data.head += header.msg_length;
 
