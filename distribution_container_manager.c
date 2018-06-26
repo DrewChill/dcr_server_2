@@ -286,7 +286,6 @@ void *container_distribute_recv_data(void *dc) {
                     }
                 }
             }
-
             //move tail up. TODO: circular buffer
             container->recv_data.tail += (sizeof(msg_header_t) + next_header.msg_length);
         }
@@ -309,7 +308,8 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         remote_connection_data_t *remote_connection_data = malloc(sizeof(remote_connection_data));
         remote_connection_data->connections[0].user_id = user_id;
         remote_connection_data->connections[0].connected_fd = -1; //not connected
-        remote_connection_data->connection_count++;
+        remote_connection_data->connection_count = 1;
+        //remote_connection_data->connection_count++;
 
         if (!hashtable_insert(&new_container.route_map, &room_id, remote_connection_data)) {
             //error handling
