@@ -273,7 +273,7 @@ void *container_distribute_recv_data(void *dc) {
                 for (i = 0; i < remote_data->connection_count; i++) {
                     //send the data to each connected socket
                     int connected_socket = remote_data->connections[i].connected_fd;
-                    printf("checking if client is connected...\n");fflush(stdout);
+                    printf("checking if client %u is connected...\n", remote_data->connections[i].user_id);fflush(stdout);
                     //check if it's actually connected yet
                     if (connected_socket > 0) {
 
