@@ -144,9 +144,9 @@ handle_received_data_at_container(distribution_container *container, char *data,
                 fflush(stdout);
                 remote_data->connections[i].remote_addr = remote;
                 remote_data->connections[i].connected_fd = connected_fd;
-                printf("Connection count here: %d", remote_data->connection_count);fflush(stdout);
+                printf("Connection count here: %d\n", remote_data->connection_count);fflush(stdout);
                 remote_data->connection_count = remote_data->connection_count+1;
-                printf("Connection count here: %d", remote_data->connection_count);fflush(stdout);
+                printf("Connection count here: %d\n", remote_data->connection_count);fflush(stdout);
                 connected_to_container = 1;
             }
         }
@@ -384,6 +384,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
                 int next_connection = remote_connection_data->connection_count;
                 remote_connection_data->connections[next_connection].user_id = user_id;
                 remote_connection_data->connections[next_connection].connected_fd = -1;
+                print("why is this here?");fflush(stdout);
                 remote_connection_data->connection_count++;
             } else {
                 //create a new container to add it to. (or add to existing w/ space)
