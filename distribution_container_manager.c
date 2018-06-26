@@ -402,8 +402,12 @@ void handle_incoming_data(msg_header_t header, char *data){
         existing_state = (container_state *) found;
         distribution_container *container = &existing_state->container;
 
+
+
         printf("acquiring receive mutex...\n");fflush(stdout);
         pthread_mutex_lock(&container->recv_data.recv_lock);
+        uint32_t test = 32;
+        memcpy(container->recv_data.recv_buffer+container->recv_data.head, &test, 4);
         printf("filling ditribution data buffer...%d\n", header.msg_length);fflush(stdout);
         memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, header.msg_length);
         container->recv_data.head += header.msg_length;
