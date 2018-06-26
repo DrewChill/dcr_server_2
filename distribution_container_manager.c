@@ -58,7 +58,7 @@ route_map_equalkeys(void *k1, void *k2) {
     uint32_t *room1, *room2;
     room1 = (uint32_t*)k1;
     room2 = (uint32_t*)k2;
-    printf("comparing keys %u/%u", *room1, *room2);fflush(stdout);
+    printf("comparing keys %u/%u\n", *room1, *room2);fflush(stdout);
     return (0 == memcmp(k1, k2, sizeof(uint32_t)));
 }
 
@@ -366,9 +366,12 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
             //error handling
         }
 
-        printf("inserting room numbr:%u\n", room_id);fflush(stdout);
+        uint32_t *fuck = malloc(4);
+        memcpy(fuck, &room_id, 4);
+
+        printf("inserting room numbr:%u\n", *fuck);fflush(stdout);
         //insert new state into hashtable.
-        if (!hashtable_insert(&distribution_containers_for_room_id, &room_id, new_state)) {
+        if (!hashtable_insert(&distribution_containers_for_room_id, fuck, new_state)) {
             ret = -1;
             //goto(EXIT);
         }
