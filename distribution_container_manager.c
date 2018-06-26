@@ -38,7 +38,7 @@ csfrn_equalkeys(void *k1, void *k2) {
     room1 = (uint32_t*)k1;
     room2 = (uint32_t*)k2;
     printf("comparing keys %u/%u\n", *room1, *room2);fflush(stdout);
-    return (0 == memcmp(k1, k2, sizeof(uint32_t)));
+    return 1;
 }
 
 /*****************************************************************************/
