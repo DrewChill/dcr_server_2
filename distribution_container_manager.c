@@ -251,7 +251,7 @@ void *container_distribute_recv_data(void *dc) {
             printf("recognized data to distribute...\n");fflush(stdout);
             //get the next header from the buffer
             msg_header_t next_header;
-            parse_header_info((*container)->recv_data.recv_buffer + container->recv_data.tail, &next_header);
+            parse_header_info((*container).recv_data.recv_buffer + container->recv_data.tail, &next_header);
             printf("nice...\n");fflush(stdout);
 
             //grab message body from the buffer. (some messages may just have the header info)
