@@ -29,7 +29,7 @@ csfrn_hashfromkey(void *ky) {
     uint32_t *iky = (uint32_t *) ky;
     uint32_t key = *iky;
 
-    return (key * 2654435761) % (2 << 30); //this might be dumb
+    return 1; //this might be dumb
 }
 
 static int
@@ -37,7 +37,7 @@ csfrn_equalkeys(void *k1, void *k2) {
     uint32_t *room1, *room2;
     room1 = (uint32_t*)k1;
     room2 = (uint32_t*)k2;
-    printf("comparing keys %u/%u", *room1, *room2);fflush(stdout);
+    printf("comparing keys %u/%u\n", *room1, *room2);fflush(stdout);
     return (0 == memcmp(k1, k2, sizeof(uint32_t)));
 }
 
@@ -49,7 +49,7 @@ route_map_hashfromkey(void *ky) {
     uint32_t *iky = (uint32_t *) ky;
     uint32_t key = *iky;
 
-    return (key * 2654435761) % (2 << 30); //this might be dumb
+    1; //this might be dumb
 }
 
 //
