@@ -58,7 +58,7 @@ route_map_equalkeys(void *k1, void *k2) {
     uint32_t *room1, *room2;
     room1 = (uint32_t*)k1;
     room2 = (uint32_t*)k2;
-    printf("comparing keys    %u/%u\n", *room1, *room2);fflush(stdout);
+    printf("comparing keys      %u/%u\n", *room1, *room2);fflush(stdout);
     return (0 == memcmp(k1, k2, sizeof(uint32_t)));
 }
 
@@ -105,11 +105,13 @@ static void create_new_distribution_container(distribution_container *new_contai
 void init_distribution_container_manager() {
     //get interface ip addr
 
+    distribution_containers_for_room_id = malloc(sizeof(struct hashtable));
+
     //initialize hashtable
     struct hashtable *h;
-    h = create_hashtable(5, route_map_hashfromkey, route_map_equalkeys);
+    h = create_hashtable(5, csfrn_hashfromkey, csfrn_equalkeys);
 
-    memcpy(&distribution_containers_for_room_id, h, sizeof(struct hashtable));
+    memcpy(distribution_containers_for_room_id, h, sizeof(struct hashtable));
 }
 
 //TODO:update this function with new byte message layout
@@ -314,10 +316,10 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
                                   container_connection_info_t *container_connection_info) {
     int ret = 1;
     void *found;
-    if (NULL == (found = hashtable_search(&distribution_containers_for_room_id, &room_id))) {
+    if (NULL == (found = hashtable_search(distribution_containers_for_room_id, &room_id))) {
         //create new distribution container and add to the hashtable
-        distribution_container *new_container = malloc(sizeof(distribution_container)); //need to malloc?
-        create_new_distribution_container(new_container);
+        distribution_container new_container; //need to malloc?
+        create_new_distribution_container(&new_container);
 
         //add user that created it to the intial route map
         remote_connection_data_t *remote_connection_data = malloc(sizeof(remote_connection_data));
@@ -325,7 +327,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         remote_connection_data->connections[0].connected_fd = -1; //not connected
         remote_connection_data->connection_count++;
 
-        if (!hashtable_insert(&new_container->route_map, &room_id, remote_connection_data)) {
+        if (!hashtable_insert(&new_container.route_map, &room_id, remote_connection_data)) {
             //error handling
         }
 
@@ -345,11 +347,11 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         }
 
         //init recv mutex
-        pthread_mutex_init(&new_container->recv_data.recv_lock, 0);
+        pthread_mutex_init(&new_container.recv_data.recv_lock, 0);
 
         //init thread conds
-        pthread_cond_init(&new_container->recv_data.buffer_has_data, NULL);
-        pthread_cond_init(&new_container->recv_data.buffer_full, NULL);
+        pthread_cond_init(&new_container.recv_data.buffer_has_data, NULL);
+        pthread_cond_init(&new_container.recv_data.buffer_full, NULL);
 
         //new_container.recv_data.recv_buffer = malloc(2048);
 
@@ -357,33 +359,33 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
 
         //start threads
         if ((ret = pthread_create(&new_state->worker_threads[0], &attr, container_connection_listener,
-                                  (void *) new_state->container)) != 0) {
+                                  (void *) &new_state->container)) != 0) {
             //error handling
         }
 
         if ((ret = pthread_create(&new_state->worker_threads[1], &attr, container_distribute_recv_data,
-                                  (void *) new_state->container)) != 0) {
+                                  (void *) &new_state->container)) != 0) {
             //error handling
         }
 
         printf("inserting room numbr:%u\n", room_id);fflush(stdout);
         //insert new state into hashtable.
-        if (!hashtable_insert(&distribution_containers_for_room_id, &room_id, new_state)) {
+        if (!hashtable_insert(distribution_containers_for_room_id, &room_id, new_state)) {
             printf("failed to insert thing\n");fflush(stdout);
             ret = -1;
             //goto(EXIT);
         }
 
         //populate container connection info before returning
-        memcpy(container_connection_info, &new_state->container->connection_info, sizeof(container_connection_info_t));
+        memcpy(container_connection_info, &new_state->container.connection_info, sizeof(container_connection_info_t));
     } else {
         //check if existing distribution containers have space, create new if not
         container_state *existing_state;
         existing_state = (container_state *) found;
-        distribution_container *container = existing_state->container;
+        distribution_container container = existing_state->container;
 
         void *found2;
-        if (NULL == (found2 = hashtable_search(&container->route_map, &room_id))) {
+        if (NULL == (found2 = hashtable_search(&container.route_map, &room_id))) {
             //shouldn't get here
             printf("join didn't work");fflush(stdout);
         } else {
@@ -402,7 +404,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
             }
         }
 
-        memcpy(container_connection_info, &container->connection_info, sizeof(container_connection_info_t));
+        memcpy(container_connection_info, &container.connection_info, sizeof(container_connection_info_t));
     }
 
     EXIT:
@@ -410,22 +412,22 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
 }
 
 void handle_incoming_data(msg_header_t header, char *data){
-    printf("table has %d entries\n", hashtable_count(&distribution_containers_for_room_id));fflush(stdout);
+    printf("table has %d entries\n", hashtable_count(distribution_containers_for_room_id));fflush(stdout);
     printf("looking for table w/ room id:%u\n", header.room_id);fflush(stdout);
 
     void *found;
-    if(NULL == (found = hashtable_search(&distribution_containers_for_room_id, &header.room_id))){
+    if(NULL == (found = hashtable_search(distribution_containers_for_room_id, &header.room_id))){
         //error handling
         printf("failed to find container for data distibution\n");fflush(stdout);
     }else{
         //pass data to appropriate container to distribute
         container_state *existing_state;
         existing_state = (container_state *) found;
-        distribution_container *container = existing_state->container;
+        distribution_container container = existing_state->container;
 
-        container->recv_data.recv_buffer[18] = 1;
+        container.recv_data.recv_buffer[18] = 1;
         printf("acquiring receive mutex...\n");fflush(stdout);
-        pthread_mutex_lock(&container->recv_data.recv_lock);
+        pthread_mutex_lock(&container.recv_data.recv_lock);
         printf("filling ditribution data buffer...%d\n", header.msg_length);fflush(stdout);
         char buffer[4];
         buffer[0]=1;
@@ -433,12 +435,11 @@ void handle_incoming_data(msg_header_t header, char *data){
         buffer[2]=3;
         buffer[3]=4;
         uint32_t test = 32;
-        memcpy(container->recv_data.recv_buffer+container->recv_data.head, &test, 4);
-        printf("seg fault bitch\n");fflush(stdout);
-        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, header.msg_length);
-        container->recv_data.head += header.msg_length;
+        memcpy(container.recv_data.recv_buffer+container.recv_data.head, &test, 4);
+        memcpy(container.recv_data.recv_buffer+container.recv_data.head, data, header.msg_length);
+        container.recv_data.head += header.msg_length;
         printf("well shit...\n");
-        pthread_cond_signal(&container->recv_data.buffer_has_data);
-        pthread_mutex_unlock(&container->recv_data.recv_lock);
+        pthread_cond_signal(&container.recv_data.buffer_has_data);
+        pthread_mutex_unlock(&container.recv_data.recv_lock);
     }
 }
