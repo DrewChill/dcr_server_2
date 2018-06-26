@@ -325,7 +325,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         remote_connection_data->connections[0].connected_fd = -1; //not connected
         remote_connection_data->connection_count++;
 
-        if (!hashtable_insert(new_container->route_map, &room_id, remote_connection_data)) {
+        if (!hashtable_insert(&new_container->route_map, &room_id, remote_connection_data)) {
             //error handling
         }
 
@@ -345,11 +345,11 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         }
 
         //init recv mutex
-        pthread_mutex_init(new_container->recv_data.recv_lock, 0);
+        pthread_mutex_init(&new_container->recv_data.recv_lock, 0);
 
         //init thread conds
-        pthread_cond_init(new_container->recv_data.buffer_has_data, NULL);
-        pthread_cond_init(new_container->recv_data.buffer_full, NULL);
+        pthread_cond_init(&new_container->recv_data.buffer_has_data, NULL);
+        pthread_cond_init(&new_container->recv_data.buffer_full, NULL);
 
         //new_container.recv_data.recv_buffer = malloc(2048);
 
@@ -421,11 +421,11 @@ void handle_incoming_data(msg_header_t header, char *data){
         //pass data to appropriate container to distribute
         container_state *existing_state;
         existing_state = (container_state *) found;
-        distribution_container container = existing_state->container;
+        distribution_container *container = existing_state->container;
 
-        container.recv_data.recv_buffer[18] = 1;
+        container->recv_data.recv_buffer[18] = 1;
         printf("acquiring receive mutex...\n");fflush(stdout);
-        pthread_mutex_lock(&container.recv_data.recv_lock);
+        pthread_mutex_lock(&container->recv_data.recv_lock);
         printf("filling ditribution data buffer...%d\n", header.msg_length);fflush(stdout);
         char buffer[4];
         buffer[0]=1;
@@ -433,11 +433,12 @@ void handle_incoming_data(msg_header_t header, char *data){
         buffer[2]=3;
         buffer[3]=4;
         uint32_t test = 32;
-        memcpy(container.recv_data.recv_buffer+container.recv_data.head, &test, 4);
-        memcpy(container.recv_data.recv_buffer+container.recv_data.head, data, header.msg_length);
-        container.recv_data.head += header.msg_length;
+        memcpy(container->recv_data.recv_buffer+container.recv_data.head, &test, 4);
+        printf("seg fault bitch\n");fflush(stdout);
+        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, header.msg_length);
+        container->recv_data.head += header.msg_length;
         printf("well shit...\n");
-        pthread_cond_signal(&container.recv_data.buffer_has_data);
-        pthread_mutex_unlock(&container.recv_data.recv_lock);
+        pthread_cond_signal(&container->recv_data.buffer_has_data);
+        pthread_mutex_unlock(&container->recv_data.recv_lock);
     }
 }
