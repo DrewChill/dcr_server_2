@@ -38,7 +38,7 @@ csfrn_equalkeys(void *k1, void *k2) {
     room1 = (uint32_t*)k1;
     room2 = (uint32_t*)k2;
     printf("comparing keys %u/%u\n", *room1, *room2);fflush(stdout);
-    return 1;
+    return (0 == memcmp(k1, k2, sizeof(uint32_t)));
 }
 
 /*****************************************************************************/
@@ -49,7 +49,7 @@ route_map_hashfromkey(void *ky) {
     uint32_t *iky = (uint32_t *) ky;
     uint32_t key = *iky;
 
-    1; //this might be dumb
+    return 1; //this might be dumb
 }
 
 //
@@ -58,7 +58,7 @@ route_map_equalkeys(void *k1, void *k2) {
     uint32_t *room1, *room2;
     room1 = (uint32_t*)k1;
     room2 = (uint32_t*)k2;
-    printf("comparing keys %u/%u\n", *room1, *room2);fflush(stdout);
+    printf("comparing keys    %u/%u\n", *room1, *room2);fflush(stdout);
     return (0 == memcmp(k1, k2, sizeof(uint32_t)));
 }
 
@@ -107,7 +107,7 @@ void init_distribution_container_manager() {
 
     //initialize hashtable
     struct hashtable *h;
-    h = create_hashtable(5, csfrn_hashfromkey, csfrn_equalkeys);
+    h = create_hashtable(5, route_map_hashfromkey, route_map_equalkeys);
 
     memcpy(&distribution_containers_for_room_id, h, sizeof(struct hashtable));
 }
@@ -316,8 +316,8 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
     void *found;
     if (NULL == (found = hashtable_search(&distribution_containers_for_room_id, &room_id))) {
         //create new distribution container and add to the hashtable
-        distribution_container new_container; //need to malloc?
-        create_new_distribution_container(&new_container);
+        distribution_container *new_container = malloc(sizeof(distribution_container)); //need to malloc?
+        create_new_distribution_container(new_container);
 
         //add user that created it to the intial route map
         remote_connection_data_t *remote_connection_data = malloc(sizeof(remote_connection_data));
@@ -325,7 +325,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         remote_connection_data->connections[0].connected_fd = -1; //not connected
         remote_connection_data->connection_count++;
 
-        if (!hashtable_insert(&new_container.route_map, &room_id, remote_connection_data)) {
+        if (!hashtable_insert(new_container->route_map, &room_id, remote_connection_data)) {
             //error handling
         }
 
@@ -345,11 +345,11 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         }
 
         //init recv mutex
-        pthread_mutex_init(&new_container.recv_data.recv_lock, 0);
+        pthread_mutex_init(new_container->recv_data.recv_lock, 0);
 
         //init thread conds
-        pthread_cond_init(&new_container.recv_data.buffer_has_data, NULL);
-        pthread_cond_init(&new_container.recv_data.buffer_full, NULL);
+        pthread_cond_init(new_container->recv_data.buffer_has_data, NULL);
+        pthread_cond_init(new_container->recv_data.buffer_full, NULL);
 
         //new_container.recv_data.recv_buffer = malloc(2048);
 
