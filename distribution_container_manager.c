@@ -380,10 +380,10 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         //check if existing distribution containers have space, create new if not
         container_state *existing_state;
         existing_state = (container_state *) found;
-        distribution_container container = existing_state->container;
+        distribution_container *container = existing_state->container;
 
         void *found2;
-        if (NULL == (found2 = hashtable_search(&container.route_map, &room_id))) {
+        if (NULL == (found2 = hashtable_search(&container->route_map, &room_id))) {
             //shouldn't get here
             printf("join didn't work");fflush(stdout);
         } else {
