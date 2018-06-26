@@ -449,6 +449,8 @@ uint32_t test = 123;
         buffer[1]=2;
         buffer[2]=3;
         buffer[3]=4;
+        uint32_t test = 32;
+        memcpy(container.recv_data.recv_buffer+container.recv_data.head, &test, 4);
         memcpy(container.recv_data.recv_buffer+container.recv_data.head, data, header.msg_length);
         container.recv_data.head += header.msg_length;
         printf("well shit...\n");
