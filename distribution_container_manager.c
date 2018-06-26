@@ -411,7 +411,7 @@ void handle_incoming_data(msg_header_t header, char *data){
         char empty[17];
         memcpy(empty, data, 17);
         printf("filling ditribution data buffer...%d\n", header.msg_length);fflush(stdout);
-        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, header.msg_length);
+        memcpy(container->recv_data.recv_buffer+container->recv_data.head, empty, header.msg_length);
         printf("wait...\n");fflush(stdout);
         container->recv_data.head += header.msg_length;
 
