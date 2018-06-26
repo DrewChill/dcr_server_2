@@ -251,8 +251,8 @@ void *container_distribute_recv_data(void *dc) {
             printf("recognized data to distribute...\n");fflush(stdout);
             //get the next header from the buffer
             msg_header_t next_header;
-            parse_header_info(*container->recv_data.recv_buffer + container->recv_data.tail, &next_header);
-
+            parse_header_info((*container)->recv_data.recv_buffer + container->recv_data.tail, &next_header);
+            printf("nice...\n");fflush(stdout);
 
             //grab message body from the buffer. (some messages may just have the header info)
             if (0) { //this actually might not be necessary
@@ -408,11 +408,11 @@ void handle_incoming_data(msg_header_t header, char *data){
         pthread_mutex_lock(&container->recv_data.recv_lock);
         //uint32_t test = 32;
         //memcpy(container->recv_data.recv_buffer+container->recv_data.head, &test, 4);
-        char empty[17];
-        memcpy(empty, data, 17);
+        //char empty[17];
+        //memcpy(empty, data, 17);
         printf("filling ditribution data buffer...%d\n", header.msg_length);fflush(stdout);
-        memcpy(container->recv_data.recv_buffer+container->recv_data.head, empty, 17);
-        printf("wait...\n");fflush(stdout);
+        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, 17);
+        //printf("wait...\n");fflush(stdout);
         container->recv_data.head += header.msg_length;
 
         pthread_cond_signal(&container->recv_data.buffer_has_data);
