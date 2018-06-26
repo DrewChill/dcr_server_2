@@ -357,12 +357,12 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
 
         //start threads
         if ((ret = pthread_create(&new_state->worker_threads[0], &attr, container_connection_listener,
-                                  (void *) &new_state->container)) != 0) {
+                                  (void *) new_state->container)) != 0) {
             //error handling
         }
 
         if ((ret = pthread_create(&new_state->worker_threads[1], &attr, container_distribute_recv_data,
-                                  (void *) &new_state->container)) != 0) {
+                                  (void *) new_state->container)) != 0) {
             //error handling
         }
 
