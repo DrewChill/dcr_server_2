@@ -402,7 +402,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
             }
         }
 
-        memcpy(container_connection_info, &container.connection_info, sizeof(container_connection_info_t));
+        memcpy(container_connection_info, &container->connection_info, sizeof(container_connection_info_t));
     }
 
     EXIT:
