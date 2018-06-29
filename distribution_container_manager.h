@@ -55,7 +55,7 @@ typedef struct{
 	int active_connection_count;
 	container_connection_info_t connection_info;
 	container_recv_data_t recv_data;
-	struct hashtable route_map; //keys: room id
+	struct hashtable *route_map; //keys: room id
                                    //values: remote connection connection info
 } distribution_container;
 

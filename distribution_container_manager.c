@@ -102,7 +102,8 @@ static void create_new_distribution_container(distribution_container *new_contai
     new_container->sock = sock;
     new_container->active_connection_count = 0;
     new_container->connection_info.container_addr = addr; //use memcpy here?
-    memcpy(&new_container->route_map, h, sizeof(struct hashtable));
+    new_container->route_map = malloc(sizeof(struct hashtable));
+    memcpy(new_container->route_map, h, sizeof(struct hashtable));
 }
 
 //TODO:update this function with new byte message layout
