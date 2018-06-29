@@ -30,14 +30,14 @@ typedef struct{
 } container_connection_info_t;
 
 typedef struct{
-        uint32_t user_id;
+	uint32_t user_id;
 	int connected_fd;
-        struct sockaddr_in remote_addr;
+	struct sockaddr_in remote_addr;
 } remote_connection_info_t;
 //-------
 
 typedef struct{
-	char *recv_buffer[2048];
+	char *recv_buffer;
 	int head;
 	int tail;
 	pthread_mutex_t recv_lock;
@@ -46,16 +46,16 @@ typedef struct{
 } container_recv_data_t;
 
 typedef struct{
-	remote_connection_info_t connections[MAX_CONNECTIONS];
+	remote_connection_info_t *connections;
 	int connection_count;
 } remote_connection_data_t;
 
 typedef struct{
-        int sock;
+	int sock;
 	int active_connection_count;
-        container_connection_info_t connection_info;
+	container_connection_info_t connection_info;
 	container_recv_data_t recv_data;
-        struct hashtable route_map; //keys: room id
+	struct hashtable route_map; //keys: room id
                                    //values: remote connection connection info
 } distribution_container;
 

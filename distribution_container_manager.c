@@ -112,7 +112,7 @@ handle_received_data_at_container(distribution_container *container, char *data,
 
     //parse the received message
     msg_header_t msg_header;
-    char body[MAX_MSG_SIZE - sizeof(msg_header)];
+    //char body[MAX_MSG_SIZE - sizeof(msg_header)];
     parse_header_info(data, &msg_header);
 
     //char response_buffer[MAX_MSG_SIZE];
@@ -126,7 +126,7 @@ handle_received_data_at_container(distribution_container *container, char *data,
         //parse container connection ack
         //connect_to_container_msg_t connect_to_container_msg;
 
-        memcpy(body, data + sizeof(msg_header), sizeof(connect_to_container_msg_t));
+        //memcpy(body, data + sizeof(msg_header), sizeof(connect_to_container_msg_t));
 
         //parse_connect_to_container_msg(body, &connect_to_container_msg);
 
@@ -144,11 +144,11 @@ handle_received_data_at_container(distribution_container *container, char *data,
         uint8_t connected_to_container = 0;
         int i;
         for (i = 0; i < MAX_CONNECTIONS; i++) {
-            if (remote_data->connections[i].user_id == msg_header.user_id) {
+            if (remote_data->connections[i]->user_id == msg_header.user_id) {
                 printf("added user to distro...\n");
                 fflush(stdout);
-                remote_data->connections[i].remote_addr = remote;
-                remote_data->connections[i].connected_fd = connected_fd;
+                remote_data->connections[i]->remote_addr = remote;
+                remote_data->connections[i]->connected_fd = connected_fd;
                 printf("Connection count here: %d\n", remote_data->connection_count);fflush(stdout);
                 remote_data->connection_count = remote_data->connection_count+1;
                 printf("Connection count here: %d\n", remote_data->connection_count);fflush(stdout);
@@ -281,8 +281,8 @@ void *container_distribute_recv_data(void *dc) {
                 int i;
                 for (i = 0; i < remote_data->connection_count; i++) {
                     //send the data to each connected socket
-                    int connected_socket = remote_data->connections[i].connected_fd;
-                    printf("checking if client %u is connected...\n", remote_data->connections[i].user_id);fflush(stdout);
+                    int connected_socket = remote_data->connections[i]->connected_fd;
+                    printf("checking if client %u is connected...\n", remote_data->connections[i]->user_id);fflush(stdout);
                     //check if it's actually connected yet
                     if (connected_socket > 0) {
 
@@ -299,7 +299,7 @@ void *container_distribute_recv_data(void *dc) {
                 }
             }
             //move tail up. TODO: circular buffer
-            container->recv_data.tail += (sizeof(msg_header_t) + next_header.msg_length);
+            container->recv_data.tail += next_header.msg_length;
         }
 
         //finished sending all the data. buffer can be filled again
@@ -316,10 +316,13 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         distribution_container new_container; //need to malloc?
         create_new_distribution_container(&new_container);
 
+        new_container.recv_data.recv_buffer = calloc(2048, sizeof(char));
+
         //add user that created it to the intial route map
         remote_connection_data_t *remote_connection_data = calloc(1, sizeof(remote_connection_data));
-        remote_connection_data->connections[0].user_id = user_id;
-        remote_connection_data->connections[0].connected_fd = -1; //not connected
+        remote_connection_data->connections = calloc(MAX_CONNECTIONS, sizeof(remote_connection_info_t));
+        remote_connection_data->connections[0]->user_id = user_id;
+        remote_connection_data->connections[0]->connected_fd = -1; //not connected
         remote_connection_data->connection_count = 0;
 
         if (!hashtable_insert(&new_container.route_map, &room_id, remote_connection_data)) {
@@ -327,7 +330,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         }
 
         //add container to container state and start its worker threads
-        container_state *new_state = calloc(sizeof(container_state));
+        container_state *new_state = calloc(1,sizeof(container_state));
         // maybe do later down new_state->container = new_container;
 
         //start worker threads for container
@@ -387,8 +390,8 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
             remote_connection_data = (remote_connection_data_t *) found2;
             if (remote_connection_data->connection_count < MAX_CONNECTIONS) {
                 int next_connection = remote_connection_data->connection_count;
-                remote_connection_data->connections[next_connection].user_id = user_id;
-                remote_connection_data->connections[next_connection].connected_fd = -1;
+                remote_connection_data->connections[next_connection]->user_id = user_id;
+                remote_connection_data->connections[next_connection]->connected_fd = -1;
                 //printf("why is this here?");fflush(stdout);
                 remote_connection_data->connection_count++;
             } else {
@@ -412,18 +415,18 @@ void handle_incoming_data(msg_header_t header, char *data){
         //pass data to appropriate container to distribute
         container_state *existing_state;
         existing_state = (container_state *) found;
-        distribution_container *container = &existing_state->container;
+        distribution_container container = existing_state->container;
 
 
 
         printf("acquiring receive mutex...\n");fflush(stdout);
-        pthread_mutex_lock(&container->recv_data.recv_lock);
+        pthread_mutex_lock(&container.recv_data.recv_lock);
         //uint32_t test = 32;
         //memcpy(container->recv_data.recv_buffer+container->recv_data.head, &test, 4);
         //char empty[17];
         //memcpy(empty, data, 17);
         int len = header.msg_length;
-        printf("filling ditribution data buffer...%d\n", fuckyou);fflush(stdout);
+        printf("filling ditribution data buffer...\n");fflush(stdout);
         memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, len);
         //printf("wait...\n");fflush(stdout);
         container->recv_data.head += len;
