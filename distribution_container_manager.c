@@ -22,6 +22,10 @@ unsigned long if_addr;
 //family to use for connections
 short container_family;
 
+//map of distribution containers for room id
+struct hashtable *distribution_containers_for_room_id;//keys: room id
+                                                      //values: array of container states
+
 /************************************CONTAINER STATES FOR ROOM NUMBER HASHTABLE FUNCTION*****************************************/
 static unsigned int
 csfrn_hashfromkey(void *ky) {
@@ -51,6 +55,17 @@ route_map_hashfromkey(void *ky) {
 static int
 route_map_equalkeys(void *k1, void *k2) {
     return (0 == memcmp(k1, k2, sizeof(uint32_t)));
+}
+
+void init_distribution_container_manager() {
+    //get interface ip addr
+    distribution_containers_for_room_id;
+
+    //initialize hashtable
+    struct hashtable *h;
+    h = create_hashtable(5, csfrn_hashfromkey, csfrn_equalkeys);
+
+    memcpy(distribution_containers_for_room_id, h, sizeof(struct hashtable));
 }
 
 /*****************************************************************************/
@@ -88,16 +103,6 @@ static void create_new_distribution_container(distribution_container *new_contai
     new_container->active_connection_count = 0;
     new_container->connection_info.container_addr = addr; //use memcpy here?
     memcpy(&new_container->route_map, h, sizeof(struct hashtable));
-}
-
-void init_distribution_container_manager() {
-    //get interface ip addr
-
-    //initialize hashtable
-    struct hashtable *h;
-    h = create_hashtable(5, csfrn_hashfromkey, csfrn_equalkeys);
-
-    memcpy(&distribution_containers_for_room_id, h, sizeof(struct hashtable));
 }
 
 //TODO:update this function with new byte message layout
@@ -306,7 +311,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
                                   container_connection_info_t *container_connection_info) {
     int ret = 1;
     void *found;
-    if (NULL == (found = hashtable_search(&distribution_containers_for_room_id, &room_id))) {
+    if (NULL == (found = hashtable_search(distribution_containers_for_room_id, &room_id))) {
         //create new distribution container and add to the hashtable
         distribution_container new_container; //need to malloc?
         create_new_distribution_container(&new_container);
@@ -322,7 +327,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         }
 
         //add container to container state and start its worker threads
-        container_state *new_state = malloc(sizeof(container_state));
+        container_state *new_state = calloc(sizeof(container_state));
         // maybe do later down new_state->container = new_container;
 
         //start worker threads for container
@@ -357,7 +362,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         }
 
         //insert new state into hashtable.
-        if (!hashtable_insert(&distribution_containers_for_room_id, &room_id, new_state)) {
+        if (!hashtable_insert(distribution_containers_for_room_id, &room_id, new_state)) {
             ret = -1;
             //goto(EXIT);
         }
@@ -400,7 +405,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
 
 void handle_incoming_data(msg_header_t header, char *data){
     void *found;
-    if(NULL == (found = hashtable_search(&distribution_containers_for_room_id, &header.room_id))){
+    if(NULL == (found = hashtable_search(distribution_containers_for_room_id, &header.room_id))){
         //error handling
         printf("failed to find container for data distibution\n");fflush(stdout);
     }else{
@@ -417,11 +422,11 @@ void handle_incoming_data(msg_header_t header, char *data){
         //memcpy(container->recv_data.recv_buffer+container->recv_data.head, &test, 4);
         //char empty[17];
         //memcpy(empty, data, 17);
-        int fuckyou = header.msg_length;
+        int len = header.msg_length;
         printf("filling ditribution data buffer...%d\n", fuckyou);fflush(stdout);
-        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, fuckyou);
+        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, len);
         //printf("wait...\n");fflush(stdout);
-        container->recv_data.head += header.msg_length;
+        container->recv_data.head += len;
 
         pthread_cond_signal(&container->recv_data.buffer_has_data);
         pthread_mutex_unlock(&container->recv_data.recv_lock);

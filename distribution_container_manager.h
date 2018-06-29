@@ -65,10 +65,6 @@ typedef struct{
 	distribution_container container;
 } container_state;
 
-//map of distribution containers for room id
-struct hashtable distribution_containers_for_room_id;//keys: room id
-						     //values: array of container states
-
 void init_distribution_container_manager();
 
 //handle a new connection request. fill continer connection info for container remote connection was added to

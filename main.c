@@ -58,7 +58,7 @@ void *listen_for_create_requests() {
     }
 
     int remoteLen, numBytesRecved, numBytesReturned;
-    char data[2048];
+    char *data = calloc(2048* sizeof(char));
     struct sockaddr_in remote;
 
     //get remote addr length
