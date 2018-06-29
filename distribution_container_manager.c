@@ -347,11 +347,11 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         }
 
         //init recv mutex
-        pthread_mutex_init(&new_container.recv_data.recv_lock, 0);
+        pthread_mutex_init(&new_container->recv_data.recv_lock, 0);
 
         //init thread conds
-        pthread_cond_init(&new_container.recv_data.buffer_has_data, NULL);
-        pthread_cond_init(&new_container.recv_data.buffer_full, NULL);
+        pthread_cond_init(&new_container->recv_data.buffer_has_data, NULL);
+        pthread_cond_init(&new_container->recv_data.buffer_full, NULL);
 
         new_state->container = new_container;
 
@@ -373,7 +373,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         }
 
         //populate container connection info before returning
-        memcpy(container_connection_info, &new_state->container.connection_info, sizeof(container_connection_info_t));
+        memcpy(container_connection_info, &new_state->container->connection_info, sizeof(container_connection_info_t));
     } else {
         //check if existing distribution containers have space, create new if not
         container_state *existing_state;
