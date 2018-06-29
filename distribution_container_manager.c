@@ -59,13 +59,13 @@ route_map_equalkeys(void *k1, void *k2) {
 
 void init_distribution_container_manager() {
     //get interface ip addr
-    distribution_containers_for_room_id = malloc(sizeof(struct hashtable));
+    //distribution_containers_for_room_id = malloc(sizeof(struct hashtable));
 
     //initialize hashtable
-    struct hashtable *h;
-    h = create_hashtable(5, csfrn_hashfromkey, csfrn_equalkeys);
+    //struct hashtable *h;
+    distribution_containers_for_room_id = create_hashtable(5, csfrn_hashfromkey, csfrn_equalkeys);
 
-    memcpy(distribution_containers_for_room_id, h, sizeof(struct hashtable));
+    //memcpy(distribution_containers_for_room_id, h, sizeof(struct hashtable));
 }
 
 /*****************************************************************************/
@@ -95,15 +95,15 @@ static void create_new_distribution_container(distribution_container *new_contai
     next_free_port++;
 
     //create the route hashtable for the container
-    struct hashtable *h;
-    h = create_hashtable(5, route_map_hashfromkey, route_map_equalkeys);
+    //struct hashtable *h;
+    //h = create_hashtable(5, route_map_hashfromkey, route_map_equalkeys);
 
     //populate container
     new_container->sock = sock;
     new_container->active_connection_count = 0;
     new_container->connection_info.container_addr = addr; //use memcpy here?
-    new_container->route_map = malloc(sizeof(struct hashtable));
-    memcpy(new_container->route_map, h, sizeof(struct hashtable));
+    new_container->route_map = create_hashtable(5, route_map_hashfromkey, route_map_equalkeys);
+    //memcpy(new_container->route_map, h, sizeof(struct hashtable));
 }
 
 //TODO:update this function with new byte message layout
@@ -132,6 +132,7 @@ handle_received_data_at_container(distribution_container *container, char *data,
         //parse_connect_to_container_msg(body, &connect_to_container_msg);
 
         //remote_connection_info_t *user_buffer;
+        printf("table count: %d\n",hashtable_count(container->route_map));fflush(stdout);
         void *found;
         if (NULL == (found = hashtable_search(container->route_map, &msg_header.room_id))) {
             //error handling
@@ -314,7 +315,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
     void *found;
     if (NULL == (found = hashtable_search(distribution_containers_for_room_id, &room_id))) {
         //create new distribution container and add to the hashtable
-        distribution_container *new_container = malloc(sizeof(distribution_container)); //need to malloc?
+        distribution_container *new_container = malloc(sizeof(distribution_container));
         create_new_distribution_container(new_container);
 
         new_container->recv_data.recv_buffer = calloc(2048, sizeof(char));
@@ -329,11 +330,12 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
 
         if (!hashtable_insert(new_container->route_map, &room_id, remote_connection_data)) {
             //error handling
+            printf("couldn't add conneciton info");fflush(stdout);
         }
 
-        //add container to container state and start its worker threads
-        container_state *new_state = calloc(1,sizeof(container_state));
-        // maybe do later down new_state->container = new_container;
+        if(NULL == (found = hashtable_search(new_container->route_map, &room_id))){
+            printf("couldn't find just added");fflush(stdout);
+        }
 
         //start worker threads for container
         //set as detached
@@ -353,22 +355,30 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         pthread_cond_init(&new_container->recv_data.buffer_has_data, NULL);
         pthread_cond_init(&new_container->recv_data.buffer_full, NULL);
 
+        //add container to container state and start its worker threads
+        container_state *new_state = calloc(1,sizeof(container_state));
         new_state->container = new_container;
+
+        if(NULL == (found = hashtable_search(new_state->new_container->route_map, &room_id))){
+            printf("couldn't find just added 2");fflush(stdout);
+        }
 
         //start threads
         if ((ret = pthread_create(&new_state->worker_threads[0], &attr, container_connection_listener,
-                                  (void *) new_state->container)) != 0) {
+                                  (void *) new_container)) != 0) {
             //error handling
         }
 
         if ((ret = pthread_create(&new_state->worker_threads[1], &attr, container_distribute_recv_data,
-                                  (void *) new_state->container)) != 0) {
+                                  (void *) new_container)) != 0) {
             //error handling
         }
+
 
         //insert new state into hashtable.
         if (!hashtable_insert(distribution_containers_for_room_id, &room_id, new_state)) {
             ret = -1;
+            printf("didnt add state");fflush(stdout);
             //goto(EXIT);
         }
 
