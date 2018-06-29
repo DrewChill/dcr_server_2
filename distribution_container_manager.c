@@ -133,7 +133,7 @@ handle_received_data_at_container(distribution_container *container, char *data,
 
         //remote_connection_info_t *user_buffer;
         void *found;
-        if (NULL == (found = hashtable_search(&container->route_map, &msg_header.room_id))) {
+        if (NULL == (found = hashtable_search(container->route_map, &msg_header.room_id))) {
             //error handling
             printf("route table fucked up...\n");
             fflush(stdout);
@@ -273,7 +273,7 @@ void *container_distribute_recv_data(void *dc) {
 
             //parse and distribute message...actually is parsing even necessary? probably not
             void *found;
-            if (NULL == (found = hashtable_search(&container->route_map, &next_header.room_id))) {
+            if (NULL == (found = hashtable_search(container->route_map, &next_header.room_id))) {
                 //error handling
             } else {
                 remote_connection_data_t *remote_data;
@@ -327,7 +327,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         (remote_connection_data->connections + 0)->connected_fd = -1; //not connected
         remote_connection_data->connection_count = 0;
 
-        if (!hashtable_insert(&new_container.route_map, &room_id, remote_connection_data)) {
+        if (!hashtable_insert(new_container.route_map, &room_id, remote_connection_data)) {
             //error handling
         }
 
@@ -381,7 +381,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         distribution_container container = existing_state->container;
 
         void *found2;
-        if (NULL == (found2 = hashtable_search(&container.route_map, &room_id))) {
+        if (NULL == (found2 = hashtable_search(container.route_map, &room_id))) {
             //shouldn't get here
             printf("join didn't work");fflush(stdout);
         } else {
