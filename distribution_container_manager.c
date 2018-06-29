@@ -132,9 +132,10 @@ handle_received_data_at_container(distribution_container *container, char *data,
         //parse_connect_to_container_msg(body, &connect_to_container_msg);
 
         //remote_connection_info_t *user_buffer;
-        printf("table count: %d\n",hashtable_count(container->route_map));fflush(stdout);
+        printf("table count: %d\n",msg_header.room_id);fflush(stdout);
+        uint32_t fuck = msg_header.room_id;
         void *found;
-        if (NULL == (found = hashtable_search(container->route_map, &msg_header.room_id))) {
+        if (NULL == (found = hashtable_search(container->route_map, &fuck))) {
             //error handling
             printf("route table fucked up...\n");
             fflush(stdout);
