@@ -332,7 +332,10 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         (remote_connection_data->connections + 0)->connected_fd = -1; //not connected
         remote_connection_data->connection_count = 0;
 
-        if (!hashtable_insert(new_container->route_map, &room_id, remote_connection_data)) {
+        uint32_t *rm_key = malloc(sizeof(uint32_t));
+        memcpy(rm_key, &room_id, sizeof(uint32_t));
+
+        if (!hashtable_insert(new_container->route_map, rm_key, remote_connection_data)) {
             //error handling
             printf("couldn't add conneciton info");fflush(stdout);
         }
