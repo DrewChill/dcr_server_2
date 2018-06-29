@@ -136,9 +136,9 @@ handle_received_data_at_container(distribution_container *container, char *data,
 
         //remote_connection_info_t *user_buffer;
         printf("table count: %d\n",msg_header.room_id);fflush(stdout);
-        uint32_t fuck = msg_header.room_id;
+        //uint32_t fuck = msg_header.room_id;
         void *found;
-        if (NULL == (found = hashtable_search(container->route_map, &fuck))) {
+        if (NULL == (found = hashtable_search(container->route_map, &msg_header.room_id))) {
             //error handling
             printf("route table fucked up...\n");
             fflush(stdout);
@@ -340,10 +340,6 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
             printf("couldn't add conneciton info");fflush(stdout);
         }
 
-        if(NULL == (found = hashtable_search(new_container->route_map, &room_id))){
-            printf("couldn't find just added");fflush(stdout);
-        }
-
         //start worker threads for container
         //set as detached
         pthread_attr_t attr;
@@ -366,10 +362,6 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         container_state *new_state = calloc(1,sizeof(container_state));
         new_state->container = new_container;
 
-        if(NULL == (found = hashtable_search(new_state->container->route_map, &room_id))){
-            printf("couldn't find just added 2");fflush(stdout);
-        }
-
         //start threads
         if ((ret = pthread_create(&new_state->worker_threads[0], &attr, container_connection_listener,
                                   (void *) new_container)) != 0) {
@@ -382,8 +374,11 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         }
 
 
+        uint32_t rm_key_2;
+        memcpy(rm_key_2, &room_id, sizeof(uint32_t));
+
         //insert new state into hashtable.
-        if (!hashtable_insert(distribution_containers_for_room_id, &room_id, new_state)) {
+        if (!hashtable_insert(distribution_containers_for_room_id, &rm_key_2, new_state)) {
             ret = -1;
             printf("didnt add state");fflush(stdout);
             //goto(EXIT);
