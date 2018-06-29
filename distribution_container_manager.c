@@ -59,7 +59,7 @@ route_map_equalkeys(void *k1, void *k2) {
 
 void init_distribution_container_manager() {
     //get interface ip addr
-    distribution_containers_for_room_id;
+    distribution_containers_for_room_id = malloc(sizeof(struct hashtable));
 
     //initialize hashtable
     struct hashtable *h;
