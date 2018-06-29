@@ -144,11 +144,11 @@ handle_received_data_at_container(distribution_container *container, char *data,
         uint8_t connected_to_container = 0;
         int i;
         for (i = 0; i < MAX_CONNECTIONS; i++) {
-            if (remote_data->connections[i]->user_id == msg_header.user_id) {
+            if ((remote_data->connections + i)->user_id == msg_header.user_id) {
                 printf("added user to distro...\n");
                 fflush(stdout);
-                remote_data->connections[i]->remote_addr = remote;
-                remote_data->connections[i]->connected_fd = connected_fd;
+                (remote_data->connections + i)->remote_addr = remote;
+                (remote_data->connections + i)->connected_fd = connected_fd;
                 printf("Connection count here: %d\n", remote_data->connection_count);fflush(stdout);
                 remote_data->connection_count = remote_data->connection_count+1;
                 printf("Connection count here: %d\n", remote_data->connection_count);fflush(stdout);
@@ -281,8 +281,8 @@ void *container_distribute_recv_data(void *dc) {
                 int i;
                 for (i = 0; i < remote_data->connection_count; i++) {
                     //send the data to each connected socket
-                    int connected_socket = remote_data->connections[i]->connected_fd;
-                    printf("checking if client %u is connected...\n", remote_data->connections[i]->user_id);fflush(stdout);
+                    int connected_socket = (remote_data->connections + i)->connected_fd;
+                    printf("checking if client %u is connected...\n", (remote_data->connections + i)->user_id);fflush(stdout);
                     //check if it's actually connected yet
                     if (connected_socket > 0) {
 
@@ -321,8 +321,9 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         //add user that created it to the intial route map
         remote_connection_data_t *remote_connection_data = calloc(1, sizeof(remote_connection_data));
         remote_connection_data->connections = calloc(MAX_CONNECTIONS, sizeof(remote_connection_info_t));
-        remote_connection_data->connections[0]->user_id = user_id;
-        remote_connection_data->connections[0]->connected_fd = -1; //not connected
+
+        (remote_connection_data->connections + 0)->user_id = user_id;
+        (remote_connection_data->connections + 0)->connected_fd = -1; //not connected
         remote_connection_data->connection_count = 0;
 
         if (!hashtable_insert(&new_container.route_map, &room_id, remote_connection_data)) {
@@ -427,11 +428,11 @@ void handle_incoming_data(msg_header_t header, char *data){
         //memcpy(empty, data, 17);
         int len = header.msg_length;
         printf("filling ditribution data buffer...\n");fflush(stdout);
-        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, len);
+        memcpy(container.recv_data.recv_buffer+container.recv_data.head, data, len);
         //printf("wait...\n");fflush(stdout);
-        container->recv_data.head += len;
+        container.recv_data.head += len;
 
-        pthread_cond_signal(&container->recv_data.buffer_has_data);
-        pthread_mutex_unlock(&container->recv_data.recv_lock);
+        pthread_cond_signal(&container.recv_data.buffer_has_data);
+        pthread_mutex_unlock(&container.recv_data.recv_lock);
     }
 }
