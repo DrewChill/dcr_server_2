@@ -391,8 +391,8 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
             remote_connection_data = (remote_connection_data_t *) found2;
             if (remote_connection_data->connection_count < MAX_CONNECTIONS) {
                 int next_connection = remote_connection_data->connection_count;
-                remote_connection_data->connections[next_connection]->user_id = user_id;
-                remote_connection_data->connections[next_connection]->connected_fd = -1;
+                (remote_connection_data->connections + next_connection)->user_id = user_id;
+                (remote_connection_data->connections + next_connection)->connected_fd = -1;
                 //printf("why is this here?");fflush(stdout);
                 remote_connection_data->connection_count++;
             } else {
