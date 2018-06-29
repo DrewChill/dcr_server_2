@@ -62,7 +62,7 @@ typedef struct{
 //couple the container and worker thread that runs for it
 typedef struct{
 	pthread_t worker_threads[2]; //for sending and receiving data
-	distribution_container container;
+	distribution_container *container;
 } container_state;
 
 void init_distribution_container_manager();

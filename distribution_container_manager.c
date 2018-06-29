@@ -314,10 +314,10 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
     void *found;
     if (NULL == (found = hashtable_search(distribution_containers_for_room_id, &room_id))) {
         //create new distribution container and add to the hashtable
-        distribution_container new_container; //need to malloc?
-        create_new_distribution_container(&new_container);
+        distribution_container *new_container = malloc(sizeof(distribution_container)); //need to malloc?
+        create_new_distribution_container(new_container);
 
-        new_container.recv_data.recv_buffer = calloc(2048, sizeof(char));
+        new_container->recv_data.recv_buffer = calloc(2048, sizeof(char));
 
         //add user that created it to the intial route map
         remote_connection_data_t *remote_connection_data = calloc(1, sizeof(remote_connection_data));
@@ -327,7 +327,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         (remote_connection_data->connections + 0)->connected_fd = -1; //not connected
         remote_connection_data->connection_count = 0;
 
-        if (!hashtable_insert(new_container.route_map, &room_id, remote_connection_data)) {
+        if (!hashtable_insert(new_container->route_map, &room_id, remote_connection_data)) {
             //error handling
         }
 
@@ -357,12 +357,12 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
 
         //start threads
         if ((ret = pthread_create(&new_state->worker_threads[0], &attr, container_connection_listener,
-                                  (void *) &new_state->container)) != 0) {
+                                  (void *) new_state->container)) != 0) {
             //error handling
         }
 
         if ((ret = pthread_create(&new_state->worker_threads[1], &attr, container_distribute_recv_data,
-                                  (void *) &new_state->container)) != 0) {
+                                  (void *) new_state->container)) != 0) {
             //error handling
         }
 
@@ -378,7 +378,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         //check if existing distribution containers have space, create new if not
         container_state *existing_state;
         existing_state = (container_state *) found;
-        distribution_container container = existing_state->container;
+        distribution_container container = *(existing_state->container);
 
         void *found2;
         if (NULL == (found2 = hashtable_search(container.route_map, &room_id))) {
@@ -417,23 +417,23 @@ void handle_incoming_data(msg_header_t header, char *data){
         //pass data to appropriate container to distribute
         container_state *existing_state;
         existing_state = (container_state *) found;
-        distribution_container container = existing_state->container;
+        distribution_container *container = existing_state->container;
 
 
 
         printf("acquiring receive mutex...\n");fflush(stdout);
-        pthread_mutex_lock(&container.recv_data.recv_lock);
+        pthread_mutex_lock(&container->recv_data.recv_lock);
         //uint32_t test = 32;
         //memcpy(container->recv_data.recv_buffer+container->recv_data.head, &test, 4);
         //char empty[17];
         //memcpy(empty, data, 17);
         int len = header.msg_length;
         printf("filling ditribution data buffer...\n");fflush(stdout);
-        memcpy(container.recv_data.recv_buffer+container.recv_data.head, data, len);
+        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, len);
         //printf("wait...\n");fflush(stdout);
-        container.recv_data.head += len;
+        container->recv_data.head += len;
 
-        pthread_cond_signal(&container.recv_data.buffer_has_data);
-        pthread_mutex_unlock(&container.recv_data.recv_lock);
+        pthread_cond_signal(&container->recv_data.buffer_has_data);
+        pthread_mutex_unlock(&container->recv_data.recv_lock);
     }
 }
