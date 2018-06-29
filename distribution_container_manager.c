@@ -359,7 +359,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         container_state *new_state = calloc(1,sizeof(container_state));
         new_state->container = new_container;
 
-        if(NULL == (found = hashtable_search(new_state->new_container->route_map, &room_id))){
+        if(NULL == (found = hashtable_search(new_state->container->route_map, &room_id))){
             printf("couldn't find just added 2");fflush(stdout);
         }
 
