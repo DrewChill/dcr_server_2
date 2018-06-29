@@ -374,11 +374,11 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         }
 
 
-        uint32_t rm_key_2;
+        uint32_t *rm_key_2 = malloc(sizeof(uint32_t));
         memcpy(rm_key_2, &room_id, sizeof(uint32_t));
 
         //insert new state into hashtable.
-        if (!hashtable_insert(distribution_containers_for_room_id, &rm_key_2, new_state)) {
+        if (!hashtable_insert(distribution_containers_for_room_id, rm_key_2, new_state)) {
             ret = -1;
             printf("didnt add state");fflush(stdout);
             //goto(EXIT);
