@@ -56,7 +56,7 @@ static int
 route_map_equalkeys(void *k1, void *k2) {
     uint32_t *val = (uint32_t *)k1;
     uint32_t *key = (uint32_t *)k2;
-    printf("key/val %u/%u",*key,*val);fflush(stdout);
+    //printf("key/val %u/%u",*key,*val);fflush(stdout);
     return (0 == memcmp(k1, k2, sizeof(uint32_t)));
 }
 
@@ -241,7 +241,13 @@ void *container_connection_listener(void *dc) {
                         fflush(stdout);
                         request_status_msg_t response = handle_received_data_at_container(container, msg_buffer, remote,
                                                                                           i);
-                        send(i, &response, sizeof(request_status_msg_t), 0);
+                        char buffer[HEADER_LENGTH+1];
+                        memcpy(buffer, &response.header.msg_type, 2);
+                        memcpy(buffer+2, &response.header.user_id, 4);
+                        memcpy(buffer+6, &response.header.room_id, 4);
+                        memcpy(buffer+10, &response.header.msg_length, 4);
+                        memcpy(buffer+14, &response.status, 1);
+                        send(i, buffer, HEADER_LENGTH+1, 0);
                     }
                 }
             }
