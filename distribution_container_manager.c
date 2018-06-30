@@ -277,7 +277,7 @@ void *container_distribute_recv_data(void *dc) {
             void *found;
             if (NULL == (found = hashtable_search(container->route_map, &next_header->room_id))) {
                 //error handling
-                printf("route map not found for room %d..\n", next_header.room_id);fflush(stdout);
+                printf("route map not found for room %d..\n", next_header->room_id);fflush(stdout);
             } else {
                 remote_connection_data_t *remote_data;
                 remote_data = (remote_connection_data_t *) found;
@@ -304,7 +304,7 @@ void *container_distribute_recv_data(void *dc) {
             }
             free(next_header);
             //move tail up. TODO: circular buffer
-            container->recv_data.tail += next_header.msg_length;
+            container->recv_data.tail += next_header->msg_length;
         }
 
         //finished sending all the data. buffer can be filled again
