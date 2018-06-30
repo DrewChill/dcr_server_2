@@ -313,6 +313,7 @@ void *container_distribute_recv_data(void *dc) {
 
 void activate_new_container(uint32_t room_id, uint32_t user_id,
                             container_connection_info_t *container_connection_info) {
+    int ret;
     //create new distribution container and add to the hashtable
     distribution_container *new_container = malloc(sizeof(distribution_container));
     create_new_distribution_container(new_container);
@@ -419,7 +420,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
                 }
             }
 
-            memcpy(container_connection_info, &container.connection_info, sizeof(container_connection_info_t));
+            memcpy(container_connection_info, &container->connection_info, sizeof(container_connection_info_t));
         }else{
 
         }
@@ -429,12 +430,12 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
     return ret;
 }
 
-int handle_incoming_data(msg_header_t header, char *data){
+void handle_incoming_data(msg_header_t header, char *data){
     void *found;
     if(NULL == (found = hashtable_search(distribution_containers_for_room_id, &header.room_id))){
         //error handling
         printf("failed to find container for data distibution\n");fflush(stdout);
-        return -1;
+        //return 0;
     }else{
         //pass data to appropriate container to distribute
         container_state *existing_state;
@@ -452,6 +453,6 @@ int handle_incoming_data(msg_header_t header, char *data){
 
         pthread_cond_signal(&container->recv_data.buffer_has_data);
         pthread_mutex_unlock(&container->recv_data.recv_lock);
-        return 1;
+        //return 1;
     }
 }

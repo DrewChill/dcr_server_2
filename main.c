@@ -162,12 +162,12 @@ void *listen_for_create_requests() {
             //TODO:update player state in db
         }else if(header->msg_type == QUEUE_UPDATE_TYPE){
             printf("Distributing queue update...\n");
-            handle_incoming_data();
+            handle_incoming_data(*header, data);
 
             //TODO:update playlist queue in db
         }else if(header->msg_type == CHAT_MESSAGE_TYPE){
             printf("Distributing chat message...\n");
-            handle_incoming_data();
+            handle_incoming_data(*header, data);
 
             //TODO:fuck bitches
         }
