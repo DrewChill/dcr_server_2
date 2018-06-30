@@ -155,9 +155,7 @@ handle_received_data_at_container(distribution_container *container, char *data,
                 fflush(stdout);
                 (remote_data->connections + i)->remote_addr = remote;
                 (remote_data->connections + i)->connected_fd = connected_fd;
-                printf("Connection count here: %d\n", remote_data->connection_count);fflush(stdout);
-                remote_data->connection_count = remote_data->connection_count+1;
-                printf("Connection count here: %d\n", remote_data->connection_count);fflush(stdout);
+                //remote_data->connection_count = remote_data->connection_count+1;
                 connected_to_container = 1;
             }
         }
@@ -266,26 +264,20 @@ void *container_distribute_recv_data(void *dc) {
     while (1) {
         //wait until buffer has data to distribute
         pthread_cond_wait(&container->recv_data.buffer_has_data, &container->recv_data.recv_lock);
-        printf("attempting to distribute data...\n");fflush(stdout);
+        //printf("attempting to distribute data...\n");fflush(stdout);
         //distribute all available data
         while (container->recv_data.tail < container->recv_data.head) {
-            printf("recognized data to distribute...\n");fflush(stdout);
             //get the next header from the buffer
             msg_header_t next_header;
             parse_header_info((*container).recv_data.recv_buffer + container->recv_data.tail, &next_header);
-            printf("nice...%u\n", next_header.msg_type);fflush(stdout);
 
             //grab message body from the buffer. (some messages may just have the header info)
-            if (0) { //this actually might not be necessary
-                //char *next_body = malloc(sizeof(char) * next_header.header.msg_lengthheader.msg_length);
-                //memcpy(next_body, container->recv_data.recv_buffer[container->recv_data.tail], next_header.header.msg_length);
-
-            }
 
             //parse and distribute message...actually is parsing even necessary? probably not
             void *found;
             if (NULL == (found = hashtable_search(container->route_map, &next_header.room_id))) {
                 //error handling
+                printf("route map not found for room %d..\n", next_header.room_id);fflush(stdout);
             } else {
                 remote_connection_data_t *remote_data;
                 remote_data = (remote_connection_data_t *) found;
@@ -300,7 +292,7 @@ void *container_distribute_recv_data(void *dc) {
 
                         int bytes_sent = send(connected_socket,
                                               (*container).recv_data.recv_buffer + container->recv_data.tail,
-                                              17, 0);
+                                              next_header.msg_length, 0);
                         printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
                         if(bytes_sent<0){
                             on_error("Client write failed\n");
@@ -319,132 +311,139 @@ void *container_distribute_recv_data(void *dc) {
     }
 }
 
+void activate_new_container(uint32_t room_id, uint32_t user_id,
+                            container_connection_info_t *container_connection_info) {
+    //create new distribution container and add to the hashtable
+    distribution_container *new_container = malloc(sizeof(distribution_container));
+    create_new_distribution_container(new_container);
+
+    new_container->recv_data.recv_buffer = calloc(2048, sizeof(char));
+
+    //add user that created it to the intial route map
+    remote_connection_data_t *remote_connection_data = calloc(1, sizeof(remote_connection_data));
+    remote_connection_data->connections = calloc(MAX_CONNECTIONS, sizeof(remote_connection_info_t));
+
+    (remote_connection_data->connections + 0)->user_id = user_id;
+    (remote_connection_data->connections + 0)->connected_fd = -1; //not connected
+    remote_connection_data->connection_count = 1;
+
+    uint32_t *rm_key = malloc(sizeof(uint32_t));
+    memcpy(rm_key, &room_id, sizeof(uint32_t));
+
+    if (!hashtable_insert(new_container->route_map, rm_key, remote_connection_data)) {
+        //error handling
+        printf("couldn't add conneciton info");fflush(stdout);
+    }
+
+    //start worker threads for container
+    //set as detached
+    pthread_attr_t attr;
+    if ((ret = pthread_attr_init(&attr)) != 0) {
+        //error handling
+    }
+
+    if ((ret = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED)) != 0) {
+        //error handling
+    }
+
+    //init recv mutex
+    pthread_mutex_init(&new_container->recv_data.recv_lock, 0);
+
+    //init thread conds
+    pthread_cond_init(&new_container->recv_data.buffer_has_data, NULL);
+    pthread_cond_init(&new_container->recv_data.buffer_full, NULL);
+
+    //add container to container state and start its worker threads
+    container_state *new_state = calloc(1,sizeof(container_state));
+    new_state->container = new_container;
+
+    //start threads
+    if ((ret = pthread_create(&new_state->worker_threads[0], &attr, container_connection_listener,
+                              (void *) new_container)) != 0) {
+        //error handling
+    }
+
+    if ((ret = pthread_create(&new_state->worker_threads[1], &attr, container_distribute_recv_data,
+                              (void *) new_container)) != 0) {
+        //error handling
+    }
+
+
+    uint32_t *rm_key_2 = malloc(sizeof(uint32_t));
+    memcpy(rm_key_2, &room_id, sizeof(uint32_t));
+
+    //insert new state into hashtable.
+    if (!hashtable_insert(distribution_containers_for_room_id, rm_key_2, new_state)) {
+        ret = -1;
+        printf("didnt add state");fflush(stdout);
+        //goto(EXIT);
+    }
+
+    //populate container connection info before returning
+    memcpy(container_connection_info, &new_state->container->connection_info, sizeof(container_connection_info_t));
+}
+
 int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
                                   container_connection_info_t *container_connection_info) {
     int ret = 1;
     void *found;
     if (NULL == (found = hashtable_search(distribution_containers_for_room_id, &room_id))) {
-        //create new distribution container and add to the hashtable
-        distribution_container *new_container = malloc(sizeof(distribution_container));
-        create_new_distribution_container(new_container);
-
-        new_container->recv_data.recv_buffer = calloc(2048, sizeof(char));
-
-        //add user that created it to the intial route map
-        remote_connection_data_t *remote_connection_data = calloc(1, sizeof(remote_connection_data));
-        remote_connection_data->connections = calloc(MAX_CONNECTIONS, sizeof(remote_connection_info_t));
-
-        (remote_connection_data->connections + 0)->user_id = user_id;
-        (remote_connection_data->connections + 0)->connected_fd = -1; //not connected
-        remote_connection_data->connection_count = 0;
-
-        uint32_t *rm_key = malloc(sizeof(uint32_t));
-        memcpy(rm_key, &room_id, sizeof(uint32_t));
-
-        if (!hashtable_insert(new_container->route_map, rm_key, remote_connection_data)) {
-            //error handling
-            printf("couldn't add conneciton info");fflush(stdout);
-        }
-
-        //start worker threads for container
-        //set as detached
-        pthread_attr_t attr;
-        if ((ret = pthread_attr_init(&attr)) != 0) {
-            //error handling
-        }
-
-        if ((ret = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED)) != 0) {
-            //error handling
-        }
-
-        //init recv mutex
-        pthread_mutex_init(&new_container->recv_data.recv_lock, 0);
-
-        //init thread conds
-        pthread_cond_init(&new_container->recv_data.buffer_has_data, NULL);
-        pthread_cond_init(&new_container->recv_data.buffer_full, NULL);
-
-        //add container to container state and start its worker threads
-        container_state *new_state = calloc(1,sizeof(container_state));
-        new_state->container = new_container;
-
-        //start threads
-        if ((ret = pthread_create(&new_state->worker_threads[0], &attr, container_connection_listener,
-                                  (void *) new_container)) != 0) {
-            //error handling
-        }
-
-        if ((ret = pthread_create(&new_state->worker_threads[1], &attr, container_distribute_recv_data,
-                                  (void *) new_container)) != 0) {
-            //error handling
-        }
-
-
-        uint32_t *rm_key_2 = malloc(sizeof(uint32_t));
-        memcpy(rm_key_2, &room_id, sizeof(uint32_t));
-
-        //insert new state into hashtable.
-        if (!hashtable_insert(distribution_containers_for_room_id, rm_key_2, new_state)) {
-            ret = -1;
-            printf("didnt add state");fflush(stdout);
-            //goto(EXIT);
-        }
-
-        //populate container connection info before returning
-        memcpy(container_connection_info, &new_state->container->connection_info, sizeof(container_connection_info_t));
+        activate_new_container(room_id, user_id, container_connection_info);
     } else {
         //check if existing distribution containers have space, create new if not
         container_state *existing_state;
         existing_state = (container_state *) found;
-        distribution_container container = *(existing_state->container);
+        distribution_container *container = existing_state->container;
 
-        void *found2;
-        if (NULL == (found2 = hashtable_search(container.route_map, &room_id))) {
-            //shouldn't get here
-            printf("join didn't work");fflush(stdout);
-        } else {
-            //add the user to the container
-
-            //TODO: adding connections needs to be thread safe
-            remote_connection_data_t *remote_connection_data;
-            remote_connection_data = (remote_connection_data_t *) found2;
-            if (remote_connection_data->connection_count < MAX_CONNECTIONS) {
-                int next_connection = remote_connection_data->connection_count;
-                (remote_connection_data->connections + next_connection)->user_id = user_id;
-                (remote_connection_data->connections + next_connection)->connected_fd = -1;
-                //printf("why is this here?");fflush(stdout);
-                remote_connection_data->connection_count++;
+        if(container->active_connection_count < MAX_CONNECTIONS){
+            void *found2;
+            if (NULL == (found2 = hashtable_search(container->route_map, &room_id))) {
+                //shouldn't get here
+                printf("join didn't work");fflush(stdout);
             } else {
-                //create a new container to add it to. (or add to existing w/ space)
-            }
-        }
+                //add the user to the container
 
-        memcpy(container_connection_info, &container.connection_info, sizeof(container_connection_info_t));
+                //TODO: adding connections needs to be thread safe
+                remote_connection_data_t *remote_connection_data;
+                remote_connection_data = (remote_connection_data_t *) found2;
+                if (remote_connection_data->connection_count < MAX_CONNECTIONS) {
+                    int next_connection = remote_connection_data->connection_count;
+                    (remote_connection_data->connections + next_connection)->user_id = user_id;
+                    (remote_connection_data->connections + next_connection)->connected_fd = -1;
+                    //printf("why is this here?");fflush(stdout);
+                    remote_connection_data->connection_count++;
+                    container->active_connection_count++;
+                } else {
+                    //create a new container to add it to. (or add to existing w/ space)
+                    activate_new_container(room_id, user_id, container_connection_info);
+                }
+            }
+
+            memcpy(container_connection_info, &container.connection_info, sizeof(container_connection_info_t));
+        }else{
+
+        }
     }
 
     EXIT:
     return ret;
 }
 
-void handle_incoming_data(msg_header_t header, char *data){
+int handle_incoming_data(msg_header_t header, char *data){
     void *found;
     if(NULL == (found = hashtable_search(distribution_containers_for_room_id, &header.room_id))){
         //error handling
         printf("failed to find container for data distibution\n");fflush(stdout);
+        return -1;
     }else{
         //pass data to appropriate container to distribute
         container_state *existing_state;
         existing_state = (container_state *) found;
         distribution_container *container = existing_state->container;
 
-
-
-        printf("acquiring receive mutex...\n");fflush(stdout);
+        //acquire recv lock
         pthread_mutex_lock(&container->recv_data.recv_lock);
-        //uint32_t test = 32;
-        //memcpy(container->recv_data.recv_buffer+container->recv_data.head, &test, 4);
-        //char empty[17];
-        //memcpy(empty, data, 17);
+
         int len = header.msg_length;
         printf("filling ditribution data buffer...\n");fflush(stdout);
         memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, len);
@@ -453,5 +452,6 @@ void handle_incoming_data(msg_header_t header, char *data){
 
         pthread_cond_signal(&container->recv_data.buffer_has_data);
         pthread_mutex_unlock(&container->recv_data.recv_lock);
+        return 1;
     }
 }

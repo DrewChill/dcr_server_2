@@ -156,8 +156,20 @@ void *listen_for_create_requests() {
             numBytesReturned = sendto(sock, buffer, 21, 0, (struct sockaddr *) &remote, sizeof(remote));
 
         } else if(header->msg_type == PLAYER_CMND_TYPE){
-            printf("attempting to distribute data...\n");fflush(stdout);
+            printf("Distribute player command...\n");fflush(stdout);
             handle_incoming_data(*header, data);
+
+            //TODO:update player state in db
+        }else if(header->msg_type == QUEUE_UPDATE_TYPE){
+            printf("Distributing queue update...\n");
+            handle_incoming_data();
+
+            //TODO:update playlist queue in db
+        }else if(header->msg_type == CHAT_MESSAGE_TYPE){
+            printf("Distributing chat message...\n");
+            handle_incoming_data();
+
+            //TODO:fuck bitches
         }
 
 
