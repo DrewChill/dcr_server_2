@@ -268,14 +268,14 @@ void *container_distribute_recv_data(void *dc) {
         //distribute all available data
         while (container->recv_data.tail < container->recv_data.head) {
             //get the next header from the buffer
-            msg_header_t next_header;
-            parse_header_info((*container).recv_data.recv_buffer + container->recv_data.tail, &next_header);
+            msg_header_t *next_header = malloc(sizeof(msg_header_t));
+            parse_header_info(container->recv_data.recv_buffer + container->recv_data.tail, next_header);
 
             //grab message body from the buffer. (some messages may just have the header info)
 
             //parse and distribute message...actually is parsing even necessary? probably not
             void *found;
-            if (NULL == (found = hashtable_search(container->route_map, &next_header.room_id))) {
+            if (NULL == (found = hashtable_search(container->route_map, &next_header->room_id))) {
                 //error handling
                 printf("route map not found for room %d..\n", next_header.room_id);fflush(stdout);
             } else {
@@ -291,8 +291,8 @@ void *container_distribute_recv_data(void *dc) {
                     if (connected_socket > 0) {
 
                         int bytes_sent = send(connected_socket,
-                                              (*container).recv_data.recv_buffer + container->recv_data.tail,
-                                              next_header.msg_length, 0);
+                                              container->recv_data.recv_buffer + container->recv_data.tail,
+                                              next_header->msg_length, 0);
                         printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
                         if(bytes_sent<0){
                             on_error("Client write failed\n");
@@ -302,6 +302,7 @@ void *container_distribute_recv_data(void *dc) {
                     }
                 }
             }
+            free(next_header);
             //move tail up. TODO: circular buffer
             container->recv_data.tail += next_header.msg_length;
         }
