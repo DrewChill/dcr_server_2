@@ -289,10 +289,11 @@ void *container_distribute_recv_data(void *dc) {
                     printf("checking if client %u is connected...\n", (remote_data->connections + i)->user_id);fflush(stdout);
                     //check if it's actually connected yet
                     if (connected_socket > 0) {
-
+                        printf("should be sending %d bytes...\n", next_header->msg_length);fflush(stdout);
+                        int len = next_header->msg_length;
                         int bytes_sent = send(connected_socket,
                                               container->recv_data.recv_buffer + container->recv_data.tail,
-                                              next_header->msg_length, 0);
+                                              len, 0);
                         printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
                         if(bytes_sent<0){
                             on_error("Client write failed\n");
