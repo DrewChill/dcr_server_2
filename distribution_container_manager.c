@@ -266,11 +266,27 @@ void *container_distribute_recv_data(void *dc) {
         pthread_cond_wait(&container->recv_data.buffer_has_data, &container->recv_data.recv_lock);
         //printf("attempting to distribute data...\n");fflush(stdout);
         //distribute all available data
-        while (container->recv_data.tail < container->recv_data.head) {
+        while (container->recv_data.tail != container->recv_data.head) {
             //get the next header from the buffer
             msg_header_t *next_header = malloc(sizeof(msg_header_t));
-            parse_header_info(container->recv_data.recv_buffer + container->recv_data.tail, next_header);
+            int wrap_around_offset = 0;
+            if(container->recv_data.tail > container->recv_data.head){
+                int space_left = 2047-container->recv_data.tail;
+                if(space_left >= HEADER_LENGTH){
+                    parse_header_info(container->recv_data.recv_buffer + container->recv_data.tail, next_header);
+                }else{
+                    char temp_header_buffer[HEADER_LENGTH];
 
+                    memcpy(temp_header_buffer, container->recv_data.recv_buffer + container->recv_data.tail, space_left);
+                    memcpy(temp_header_buffer+space_left, container->recv_data.recv_buffer, HEADER_LENGTH-space_left);
+                    container->recv_data.tail = HEADER_LENGTH-space_left;
+                    wrap_around_offset = HEADER_LENGTH;
+
+                    parse_header_info(container->recv_data.recv_buffer + container->recv_data.tail, next_header);
+                }
+            }else{
+                parse_header_info(container->recv_data.recv_buffer + container->recv_data.tail, next_header);
+            }
             //grab message body from the buffer. (some messages may just have the header info)
 
             //parse and distribute message...actually is parsing even necessary? probably not
@@ -291,12 +307,29 @@ void *container_distribute_recv_data(void *dc) {
                     if (connected_socket > 0) {
                         printf("should be sending %d bytes...\n", next_header->msg_length);fflush(stdout);
                         int len = next_header->msg_length;
-                        int bytes_sent = send(connected_socket,
-                                              container->recv_data.recv_buffer + container->recv_data.tail,
-                                              len, 0);
-                        printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
-                        if(bytes_sent<0){
-                            on_error("Client write failed\n");
+                        if(container->recv_data.tail+len > 2047){
+                            int space_left = (container->recv_data.tail+len)-2047;
+                            char temp_buffer[len];
+                            memcpy(temp_buffer, container->recv_data.recv_buffer + container->recv_data.tail, space_left);
+                            memcpy(temp_buffer+space_left, container->recv_data.recv_buffer, len-space_left);
+                            container->recv_data.tail = len-space_left;
+                            wrap_around_offset = len;
+
+                            int bytes_sent = send(connected_socket,
+                                                  temp_buffer,
+                                                  len, 0);
+                            printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
+                            if(bytes_sent<0){
+                                on_error("Client write failed\n");
+                            }
+                        }else {
+                            int bytes_sent = send(connected_socket,
+                                                  container->recv_data.recv_buffer + container->recv_data.tail,
+                                                  len, 0);
+                            printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
+                            if(bytes_sent<0){
+                                on_error("Client write failed\n");
+                            }
                         }
                     } else {
                         //it's probably waiting to get the connection request or there was an error
@@ -305,7 +338,7 @@ void *container_distribute_recv_data(void *dc) {
             }
             free(next_header);
             //move tail up. TODO: circular buffer
-            container->recv_data.tail += next_header->msg_length;
+            container->recv_data.tail += (next_header->msg_length-wrap_around_offset);
         }
 
         //finished sending all the data. buffer can be filled again
@@ -449,9 +482,18 @@ void handle_incoming_data(msg_header_t header, char *data){
 
         int len = header.msg_length;
         printf("filling ditribution data buffer...\n");fflush(stdout);
-        memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, len);
-        //printf("wait...\n");fflush(stdout);
-        container->recv_data.head += len;
+        if(len+container->recv_data.head > 2047){
+            int space_left = (2047-container->recv_data.head);
+            memcpy(container->recv_data.recv_buffer+(2047-container->recv_data.head), data, space_left);
+            //
+            memcpy(container->recv_data.recv_buffer, data+space_left, len-space_left);
+
+            container->recv_data.head = len-space_left;
+        }else {
+            memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, len);
+            //printf("wait...\n");fflush(stdout);
+            container->recv_data.head += len;
+        }
 
         pthread_cond_signal(&container->recv_data.buffer_has_data);
         pthread_mutex_unlock(&container->recv_data.recv_lock);
