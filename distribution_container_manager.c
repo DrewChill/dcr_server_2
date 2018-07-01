@@ -10,6 +10,8 @@
 #include <pthread.h>
 #include "distribution_container_manager.h"
 
+#define BUFFER_LENGTH 5000
+
 #define MAX_MSG_SIZE 256
 #define on_error(...) { fprintf(stderr, __VA_ARGS__); fflush(stderr); exit(1); }
 
@@ -271,7 +273,7 @@ void *container_distribute_recv_data(void *dc) {
             msg_header_t *next_header = malloc(sizeof(msg_header_t));
             int wrap_around_offset = 0;
             if(container->recv_data.tail > container->recv_data.head){
-                int space_left = 2047-container->recv_data.tail;
+                int space_left = BUFFER_LENGTH-container->recv_data.tail;
                 if(space_left >= HEADER_LENGTH){
                     parse_header_info(container->recv_data.recv_buffer + container->recv_data.tail, next_header);
                 }else{
@@ -282,7 +284,7 @@ void *container_distribute_recv_data(void *dc) {
                     container->recv_data.tail = HEADER_LENGTH-space_left;
                     wrap_around_offset = HEADER_LENGTH;
 
-                    parse_header_info(container->recv_data.recv_buffer + container->recv_data.tail, next_header);
+                    parse_header_info(temp_header_buffer, next_header);
                 }
             }else{
                 parse_header_info(container->recv_data.recv_buffer + container->recv_data.tail, next_header);
@@ -307,8 +309,8 @@ void *container_distribute_recv_data(void *dc) {
                     if (connected_socket > 0) {
                         printf("should be sending %d bytes...\n", next_header->msg_length);fflush(stdout);
                         int len = next_header->msg_length;
-                        if(container->recv_data.tail+len > 2047){
-                            int space_left = 2047-container->recv_data.tail;
+                        if(container->recv_data.tail+len > BUFFER_LENGTH){
+                            int space_left = BUFFER_LENGTH-container->recv_data.tail;
                             char temp_buffer[len];
                             memcpy(temp_buffer, container->recv_data.recv_buffer + container->recv_data.tail, space_left);
                             memcpy(temp_buffer+space_left, container->recv_data.recv_buffer, len-space_left);
@@ -323,7 +325,7 @@ void *container_distribute_recv_data(void *dc) {
                                 on_error("Client write failed\n");
                             }
                         }else if(wrap_around_offset!=0){
-                            int space_left = 2047-container->recv_data.tail;
+                            int space_left = BUFFER_LENGTH-container->recv_data.tail;
                             char temp_buffer[len];
                             memcpy(temp_buffer, container->recv_data.recv_buffer + container->recv_data.tail, space_left);
                             memcpy(temp_buffer+space_left, container->recv_data.recv_buffer, len-space_left);
@@ -366,7 +368,7 @@ void activate_new_container(uint32_t room_id, uint32_t user_id,
     distribution_container *new_container = malloc(sizeof(distribution_container));
     create_new_distribution_container(new_container);
 
-    new_container->recv_data.recv_buffer = calloc(2048, sizeof(char));
+    new_container->recv_data.recv_buffer = calloc(BUFFER_LENGTH+1, sizeof(char));
 
     //add user that created it to the intial route map
     remote_connection_data_t *remote_connection_data = calloc(1, sizeof(remote_connection_data));
@@ -495,9 +497,9 @@ void handle_incoming_data(msg_header_t header, char *data){
 
         int len = header.msg_length;
         printf("filling ditribution data buffer...\n");fflush(stdout);
-        if(len+container->recv_data.head > 2047){
-            int space_left = (2047-container->recv_data.head);
-            memcpy(container->recv_data.recv_buffer+(2047-container->recv_data.head), data, space_left);
+        if(len+container->recv_data.head > BUFFER_LENGTH){
+            int space_left = (BUFFER_LENGTH-container->recv_data.head);
+            memcpy(container->recv_data.recv_buffer+(BUFFER_LENGTH-container->recv_data.head), data, space_left);
             //
             memcpy(container->recv_data.recv_buffer, data+space_left, len-space_left);
 
