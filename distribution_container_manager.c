@@ -266,7 +266,7 @@ void *container_distribute_recv_data(void *dc) {
     while (1) {
         //wait until buffer has data to distribute
         pthread_cond_wait(&container->recv_data.buffer_has_data, &container->recv_data.recv_lock);
-        //printf("attempting to distribute data...\n");fflush(stdout);
+        printf("attempting to distribute data...%d/%d\n", container->recv_data.tail, container->recv_data.head);fflush(stdout);
         //distribute all available data
         while (container->recv_data.tail != container->recv_data.head) {
             //get the next header from the buffer
