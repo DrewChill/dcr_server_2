@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include "distribution_container_manager.h"
 
-#define BUFFER_LENGTH 5000
+#define BUFFER_LENGTH 2047
 
 #define MAX_MSG_SIZE 256
 #define on_error(...) { fprintf(stderr, __VA_ARGS__); fflush(stderr); exit(1); }
@@ -308,6 +308,7 @@ void *container_distribute_recv_data(void *dc) {
                     //check if it's actually connected yet
                     if (connected_socket > 0) {
                         printf("should be sending %d bytes...\n", next_header->msg_length);fflush(stdout);
+                        printf("tail:%d head:%d...\n", container->recv_data.tail, container->recv_data.head);fflush(stdout);
                         int len = next_header->msg_length;
                         if(container->recv_data.tail+len > BUFFER_LENGTH){
                             int space_left = BUFFER_LENGTH-container->recv_data.tail;
