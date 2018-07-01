@@ -27,7 +27,7 @@ void init_db_connection(){
 int create_new_dj_room(msg_header_t header, create_room_msg_t create_info, dj_room_t *dj_room){
 
 	char query_buffer[1000];
-	snprintf(query_buffer, sizeof(query_buffer), "INSERT INTO `DJ_Room` (`DJ`,`isPrivate`, `public_port`, `private_port`, `public_ip`, `private_ip`) VALUES ('%lu', '%u', '%hu', '%hu', '%lu', '%u') ON DUPLICATE KEY UPDATE `isPrivate`='%u', `public_port`='%hu', `private_port`='%hu', `public_ip`='%lu', `private_ip`='%u'", header.user_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	snprintf(query_buffer, sizeof(query_buffer), "INSERT INTO `DJ_Room` (`DJ`,`isPrivate`) VALUES ('%lu', '%u') ON DUPLICATE KEY UPDATE `isPrivate`='%u'", header.user_id, 0, 0);
 
 	//TODO: uhh this doesn't seem right
 	char query_string[strlen(query_buffer)+1];
