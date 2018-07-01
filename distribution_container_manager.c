@@ -308,12 +308,25 @@ void *container_distribute_recv_data(void *dc) {
                         printf("should be sending %d bytes...\n", next_header->msg_length);fflush(stdout);
                         int len = next_header->msg_length;
                         if(container->recv_data.tail+len > 2047){
-                            int space_left = (container->recv_data.tail+len)-2047;
+                            int space_left = 2047-container->recv_data.tail;
                             char temp_buffer[len];
                             memcpy(temp_buffer, container->recv_data.recv_buffer + container->recv_data.tail, space_left);
                             memcpy(temp_buffer+space_left, container->recv_data.recv_buffer, len-space_left);
                             container->recv_data.tail = len-space_left;
                             wrap_around_offset = len;
+
+                            int bytes_sent = send(connected_socket,
+                                                  temp_buffer,
+                                                  len, 0);
+                            printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
+                            if(bytes_sent<0){
+                                on_error("Client write failed\n");
+                            }
+                        }else if(wrap_around_offset!=0){
+                            int space_left = 2047-container->recv_data.tail;
+                            char temp_buffer[len];
+                            memcpy(temp_buffer, container->recv_data.recv_buffer + container->recv_data.tail, space_left);
+                            memcpy(temp_buffer+space_left, container->recv_data.recv_buffer, len-space_left);
 
                             int bytes_sent = send(connected_socket,
                                                   temp_buffer,
