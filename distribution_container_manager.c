@@ -293,6 +293,7 @@ void *container_distribute_recv_data(void *dc) {
 
             //parse and distribute message...actually is parsing even necessary? probably not
             void *found;
+            int len = next_header->msg_length;
             if (NULL == (found = hashtable_search(container->route_map, &next_header->room_id))) {
                 //error handling
                 printf("route map not found for room %d..\n", next_header->room_id);fflush(stdout);
@@ -309,7 +310,6 @@ void *container_distribute_recv_data(void *dc) {
                     if (connected_socket > 0) {
                         printf("should be sending %d bytes...\n", next_header->msg_length);fflush(stdout);
                         printf("tail:%d head:%d...\n", container->recv_data.tail, container->recv_data.head);fflush(stdout);
-                        int len = next_header->msg_length;
                         if(container->recv_data.tail+len > BUFFER_LENGTH){
                             int space_left = BUFFER_LENGTH-container->recv_data.tail;
                             char temp_buffer[len];
@@ -328,8 +328,8 @@ void *container_distribute_recv_data(void *dc) {
                         }else if(wrap_around_offset!=0){
                             int space_left = BUFFER_LENGTH-container->recv_data.tail;
                             char temp_buffer[len];
-                            memcpy(temp_buffer, container->recv_data.recv_buffer + container->recv_data.tail, space_left);
-                            memcpy(temp_buffer+space_left, container->recv_data.recv_buffer, len-space_left);
+                            memcpy(temp_buffer, next_header, HEADER_LENGTH);
+                            memcpy(temp_buffer+HEADER_LENGTH, container->recv_data.tail, len-HEADER_LENGTH);
 
                             int bytes_sent = send(connected_socket,
                                                   temp_buffer,
@@ -354,7 +354,7 @@ void *container_distribute_recv_data(void *dc) {
             }
             free(next_header);
             //move tail up. TODO: circular buffer
-            container->recv_data.tail += (next_header->msg_length-wrap_around_offset);
+            container->recv_data.tail += (len-wrap_around_offset);
         }
 
         //finished sending all the data. buffer can be filled again
