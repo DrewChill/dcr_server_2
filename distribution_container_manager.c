@@ -313,11 +313,11 @@ void *container_distribute_recv_data(void *dc) {
                 }else if(wrap_around_offset!=0){
                     //int space_left = BUFFER_LENGTH-container->recv_data.tail;
                     //char temp_buffer[len];
-                    printf("copying header...\n");fflush(stdout);
+                    //printf("copying header...\n");fflush(stdout);
                     memcpy(send_buffer, next_header, HEADER_LENGTH);
-                    printf("copying body...\n");fflush(stdout);
-                    memcpy(send_buffer+HEADER_LENGTH, container->recv_data.tail, len-HEADER_LENGTH);
-                    printf("whaaat?...\n");fflush(stdout);
+                    //printf("copying body...\n");fflush(stdout);
+                    memcpy(send_buffer+HEADER_LENGTH, container->recv_data.recv_buffer + container->recv_data.tail, len-HEADER_LENGTH);
+                    //printf("whaaat?...\n");fflush(stdout);
                 }else {
                     memcpy(send_buffer, container->recv_data.recv_buffer + container->recv_data.tail, len);
                 }
