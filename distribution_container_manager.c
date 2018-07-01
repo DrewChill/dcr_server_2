@@ -301,6 +301,24 @@ void *container_distribute_recv_data(void *dc) {
                 remote_connection_data_t *remote_data;
                 remote_data = (remote_connection_data_t *) found;
                 printf("remote connection count: %d\n", remote_data->connection_count);
+
+                char send_buffer[len];
+                if(container->recv_data.tail+len > BUFFER_LENGTH){
+                    int space_left = BUFFER_LENGTH-container->recv_data.tail;
+                    //char temp_buffer[len];
+                    memcpy(send_buffer, container->recv_data.recv_buffer + container->recv_data.tail, space_left);
+                    memcpy(send_buffer+space_left, container->recv_data.recv_buffer, len-space_left);
+                    container->recv_data.tail = len-space_left;
+                    wrap_around_offset = len;
+                }else if(wrap_around_offset!=0){
+                    int space_left = BUFFER_LENGTH-container->recv_data.tail;
+                    //char temp_buffer[len];
+                    memcpy(send_buffer, next_header, HEADER_LENGTH);
+                    memcpy(send_buffer+HEADER_LENGTH, container->recv_data.tail, len-HEADER_LENGTH);
+                }else {
+                    memcpy(send_buffer, container->recv_data.recv_buffer + container->recv_data.tail, len);
+                }
+
                 int i;
                 for (i = 0; i < remote_data->connection_count; i++) {
                     //send the data to each connected socket
@@ -310,43 +328,50 @@ void *container_distribute_recv_data(void *dc) {
                     if (connected_socket > 0) {
                         printf("should be sending %d bytes...\n", next_header->msg_length);fflush(stdout);
                         printf("tail:%d head:%d...\n", container->recv_data.tail, container->recv_data.head);fflush(stdout);
-                        if(container->recv_data.tail+len > BUFFER_LENGTH){
-                            int space_left = BUFFER_LENGTH-container->recv_data.tail;
-                            char temp_buffer[len];
-                            memcpy(temp_buffer, container->recv_data.recv_buffer + container->recv_data.tail, space_left);
-                            memcpy(temp_buffer+space_left, container->recv_data.recv_buffer, len-space_left);
-                            container->recv_data.tail = len-space_left;
-                            wrap_around_offset = len;
-
-                            int bytes_sent = send(connected_socket,
-                                                  temp_buffer,
-                                                  len, 0);
-                            printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
-                            if(bytes_sent<0){
-                                on_error("Client write failed\n");
-                            }
-                        }else if(wrap_around_offset!=0){
-                            int space_left = BUFFER_LENGTH-container->recv_data.tail;
-                            char temp_buffer[len];
-                            memcpy(temp_buffer, next_header, HEADER_LENGTH);
-                            memcpy(temp_buffer+HEADER_LENGTH, container->recv_data.tail, len-HEADER_LENGTH);
-
-                            int bytes_sent = send(connected_socket,
-                                                  temp_buffer,
-                                                  len, 0);
-                            printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
-                            if(bytes_sent<0){
-                                on_error("Client write failed\n");
-                            }
-                        }else {
-                            int bytes_sent = send(connected_socket,
-                                                  container->recv_data.recv_buffer + container->recv_data.tail,
-                                                  len, 0);
-                            printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
-                            if(bytes_sent<0){
-                                on_error("Client write failed\n");
-                            }
+                        int bytes_sent = send(connected_socket,
+                                              send_buffer,
+                                              len, 0);
+                        printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
+                        if(bytes_sent<0){
+                            on_error("Client write failed\n");
                         }
+//                        if(container->recv_data.tail+len > BUFFER_LENGTH){
+//                            int space_left = BUFFER_LENGTH-container->recv_data.tail;
+//                            char temp_buffer[len];
+//                            memcpy(temp_buffer, container->recv_data.recv_buffer + container->recv_data.tail, space_left);
+//                            memcpy(temp_buffer+space_left, container->recv_data.recv_buffer, len-space_left);
+//                            container->recv_data.tail = len-space_left;
+//                            wrap_around_offset = len;
+//
+//                            int bytes_sent = send(connected_socket,
+//                                                  temp_buffer,
+//                                                  len, 0);
+//                            printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
+//                            if(bytes_sent<0){
+//                                on_error("Client write failed\n");
+//                            }
+//                        }else if(wrap_around_offset!=0){
+//                            int space_left = BUFFER_LENGTH-container->recv_data.tail;
+//                            char temp_buffer[len];
+//                            memcpy(temp_buffer, next_header, HEADER_LENGTH);
+//                            memcpy(temp_buffer+HEADER_LENGTH, container->recv_data.tail, len-HEADER_LENGTH);
+//
+//                            int bytes_sent = send(connected_socket,
+//                                                  temp_buffer,
+//                                                  len, 0);
+//                            printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
+//                            if(bytes_sent<0){
+//                                on_error("Client write failed\n");
+//                            }
+//                        }else {
+//                            int bytes_sent = send(connected_socket,
+//                                                  container->recv_data.recv_buffer + container->recv_data.tail,
+//                                                  len, 0);
+//                            printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
+//                            if(bytes_sent<0){
+//                                on_error("Client write failed\n");
+//                            }
+//                        }
                     } else {
                         //it's probably waiting to get the connection request or there was an error
                     }
