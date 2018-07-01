@@ -300,7 +300,7 @@ void *container_distribute_recv_data(void *dc) {
             } else {
                 remote_connection_data_t *remote_data;
                 remote_data = (remote_connection_data_t *) found;
-                printf("remote connection count: %d\n", remote_data->connection_count);
+                printf("remote connection count: %d/%d/%d\n", remote_data->connection_count,container->recv_data.tail,wrap_around_offset);fflush(stdout);
 
                 char send_buffer[len];
                 if(container->recv_data.tail+len > BUFFER_LENGTH){
