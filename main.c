@@ -12,6 +12,8 @@
 #include "distribution_container_manager.h"
 #include "db_connection.h"
 
+int messages_distrubuted;
+
 /*****************************************************************************/
 //static unsigned int
 //hashfromkey(void *ky)
@@ -174,7 +176,8 @@ void *listen_for_create_requests() {
             printf("Distributing other message...\n");fflush(stdout);
             handle_incoming_data(*header, data);
         }
-
+        messages_distrubuted++;
+        printf("sent msg number %d...\n",messages_distrubuted);fflush(stdout);
 
 
     }
@@ -190,6 +193,7 @@ int main(int argc, char *argv[]) {
     init_db_connection();
 
     int ret = 0;
+    messages_distrubuted = 0;
 
     //create worker threads
     pthread_attr_t attr;
