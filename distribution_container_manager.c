@@ -524,11 +524,12 @@ void handle_incoming_data(msg_header_t header, char *data){
         int len = header.msg_length;
         printf("filling ditribution data buffer @ %d...\n", container->recv_data.head);fflush(stdout);
         if(len+container->recv_data.head > BUFFER_LENGTH){
+            printf("gonna wrap around...\n");fflush(stdout);
             int space_left = (BUFFER_LENGTH-container->recv_data.head);
             memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, space_left);
             //
             memcpy(container->recv_data.recv_buffer, data+space_left, len-space_left);
-
+            printf("filled the wrap around...\n");fflush(stdout);
             container->recv_data.head = len-space_left;
         }else {
             memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, len);
