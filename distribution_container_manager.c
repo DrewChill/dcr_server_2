@@ -499,7 +499,7 @@ void handle_incoming_data(msg_header_t header, char *data){
         printf("filling ditribution data buffer...\n");fflush(stdout);
         if(len+container->recv_data.head > BUFFER_LENGTH){
             int space_left = (BUFFER_LENGTH-container->recv_data.head);
-            memcpy(container->recv_data.recv_buffer+(BUFFER_LENGTH-container->recv_data.head), data, space_left);
+            memcpy(container->recv_data.recv_buffer+container->recv_data.head, data, space_left);
             //
             memcpy(container->recv_data.recv_buffer, data+space_left, len-space_left);
 
