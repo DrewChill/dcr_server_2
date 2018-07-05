@@ -1,0 +1,1 @@
+./build.sh; ./dist/linux/dcr_server;
