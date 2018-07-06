@@ -528,7 +528,9 @@ void handle_incoming_data(msg_header_t header, char *data){
 //*********************Shutdown*************************************************
 
 void sigint_handler(int sig){
+    printf("1\n");fflush(stdout);
     if(sig == SIGINT){
+        printf("2\n");fflush(stdout);
         struct hashtable_itr *iterator;
         iterator = hashtable_iterator(distribution_containers_for_room_id);
 
