@@ -78,7 +78,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id, container_
 //pass data to the appropriate distribution container
 void handle_incoming_data(msg_header_t header, char *data);
 
-void sig_handler(int sig);
+void s_handler(int signal);
 
 #ifdef __cplusplus
 }

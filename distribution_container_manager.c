@@ -527,7 +527,7 @@ void handle_incoming_data(msg_header_t header, char *data){
 
 //*********************Shutdown*************************************************
 
-void sig_handler(int signal){
+void s_handler(int signal){
     printf("1\n");fflush(stdout);
     if(signal == SIGINT){
         printf("2\n");fflush(stdout);
