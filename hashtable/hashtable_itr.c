@@ -5,6 +5,19 @@
 #include "hashtable_itr.h"
 #include <stdlib.h> /* defines NULL */
 
+
+void *
+hashtable_iterator_value(struct hashtable_itr *i)
+{
+    return i->e->v;
+}
+
+void *
+hashtable_iterator_key(struct hashtable_itr *i)
+{
+    return i->e->k;
+}
+
 /*****************************************************************************/
 /* hashtable_iterator    - iterator constructor */
 
