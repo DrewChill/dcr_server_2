@@ -188,7 +188,7 @@ void *listen_for_create_requests() {
 //
 //}
 
-int sigint_handler(int sig){
+void sigint_handler(int sig){
     sig_handler(sig);
 }
 
