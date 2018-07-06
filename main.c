@@ -13,7 +13,7 @@
 #include "db_connection.h"
 
 int messages_distrubuted;
-
+void sigint_handler(int sig);
 /*****************************************************************************/
 //static unsigned int
 //hashfromkey(void *ky)
