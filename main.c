@@ -188,6 +188,10 @@ void *listen_for_create_requests() {
 //
 //}
 
+int sigint_handler(int sig){
+    sig_handler(sig);
+}
+
 int main(int argc, char *argv[]) {
     void sigint_handler(int sig); /* prototype */
 
