@@ -7,13 +7,14 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdint.h>
+#include <signal.h>
 //#include <mysql56/my_global.h>
 //#include <mysql.h>
 #include "distribution_container_manager.h"
 #include "db_connection.h"
 
 int messages_distrubuted;
-void sigint_handler(int sig);
+
 /*****************************************************************************/
 //static unsigned int
 //hashfromkey(void *ky)
@@ -193,7 +194,18 @@ void sigint_handler(int sig){
 }
 
 int main(int argc, char *argv[]) {
-    //void sigint_handler(int sig); /* prototype */
+    void sigint_handler(int sig); /* prototype */
+
+    struct sigaction sa;
+
+    sa.sa_handler = sigint_handler;
+    sa.sa_flags = 0; // or SA_RESTART
+    sigemptyset(&sa.sa_mask);
+
+    if (sigaction(SIGINT, &sa, NULL) == -1) {
+        perror("sigaction");
+        exit(1);
+    }
 
     init_distribution_container_manager();
     init_db_connection();
