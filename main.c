@@ -193,7 +193,7 @@ void sigint_handler(int sig){
 }
 
 int main(int argc, char *argv[]) {
-    void sigint_handler(int sig); /* prototype */
+    //void sigint_handler(int sig); /* prototype */
 
     init_distribution_container_manager();
     init_db_connection();
