@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -110,6 +111,8 @@ static void create_new_distribution_container(distribution_container *new_contai
     new_container->route_map = create_hashtable(5, route_map_hashfromkey, route_map_equalkeys);
     //memcpy(new_container->route_map, h, sizeof(struct hashtable));
 }
+
+//*********************Join Listener Thread*********************************
 
 //TODO:update this function with new byte message layout
 request_status_msg_t
@@ -255,6 +258,9 @@ void *container_connection_listener(void *dc) {
 
     }
 }
+//*********************Join Listener Thread (END)*********************************
+
+//*********************Distribute Data Thread*********************************
 
 void *container_distribute_recv_data(void *dc) {
 
@@ -338,43 +344,6 @@ void *container_distribute_recv_data(void *dc) {
                         if(bytes_sent<0){
                             on_error("Client write failed\n");
                         }
-//                        if(container->recv_data.tail+len > BUFFER_LENGTH){
-//                            int space_left = BUFFER_LENGTH-container->recv_data.tail;
-//                            char temp_buffer[len];
-//                            memcpy(temp_buffer, container->recv_data.recv_buffer + container->recv_data.tail, space_left);
-//                            memcpy(temp_buffer+space_left, container->recv_data.recv_buffer, len-space_left);
-//                            container->recv_data.tail = len-space_left;
-//                            wrap_around_offset = len;
-//
-//                            int bytes_sent = send(connected_socket,
-//                                                  temp_buffer,
-//                                                  len, 0);
-//                            printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
-//                            if(bytes_sent<0){
-//                                on_error("Client write failed\n");
-//                            }
-//                        }else if(wrap_around_offset!=0){
-//                            int space_left = BUFFER_LENGTH-container->recv_data.tail;
-//                            char temp_buffer[len];
-//                            memcpy(temp_buffer, next_header, HEADER_LENGTH);
-//                            memcpy(temp_buffer+HEADER_LENGTH, container->recv_data.tail, len-HEADER_LENGTH);
-//
-//                            int bytes_sent = send(connected_socket,
-//                                                  temp_buffer,
-//                                                  len, 0);
-//                            printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
-//                            if(bytes_sent<0){
-//                                on_error("Client write failed\n");
-//                            }
-//                        }else {
-//                            int bytes_sent = send(connected_socket,
-//                                                  container->recv_data.recv_buffer + container->recv_data.tail,
-//                                                  len, 0);
-//                            printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
-//                            if(bytes_sent<0){
-//                                on_error("Client write failed\n");
-//                            }
-//                        }
                     } else {
                         //it's probably waiting to get the connection request or there was an error
                     }
@@ -389,6 +358,10 @@ void *container_distribute_recv_data(void *dc) {
         pthread_mutex_unlock(&container->recv_data.recv_lock);
     }
 }
+
+//*********************Distribute Data Thread (END)*********************************
+
+//*********************New User Management******************************************
 
 void activate_new_container(uint32_t room_id, uint32_t user_id,
                             container_connection_info_t *container_connection_info) {
@@ -508,7 +481,10 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
     EXIT:
     return ret;
 }
+//*********************New User Management(END)*********************************
 
+
+//*********************Receiving Room Data*********************************
 void handle_incoming_data(msg_header_t header, char *data){
     void *found;
     if(NULL == (found = hashtable_search(distribution_containers_for_room_id, &header.room_id))){
@@ -545,3 +521,31 @@ void handle_incoming_data(msg_header_t header, char *data){
         //return 1;
     }
 }
+
+//*********************Receiving Room Data(END)*********************************
+
+
+//*********************Shutdown*************************************************
+
+void sigint_handler(int sig){
+    if(sig == SIGINT){
+        struct hashtable_itr *iterator;
+        iterator = hashtable_iterator(distribution_containers_for_room_id);
+
+        int i=0;
+        if(hashtable_count(distribution_containers_for_room_id) > 0){
+            do{
+                container_state *cs;
+                cs = hashtable_iterator_value(iterator);
+
+                close(cs->container->sock);
+
+                i++;
+            }while(hashtable_iterator_advance(iterator));
+        }
+        printf("closed %d sockets...exiting\n");fflush(stdout);
+        exit(0);
+    }
+}
+
+//*********************Shutdown(END)********************************************

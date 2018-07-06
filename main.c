@@ -189,6 +189,8 @@ void *listen_for_create_requests() {
 //}
 
 int main(int argc, char *argv[]) {
+    void sigint_handler(int sig); /* prototype */
+
     init_distribution_container_manager();
     init_db_connection();
 
