@@ -437,8 +437,8 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
 
         //new container entry
         container_table_entry *container_entry = malloc(sizeof(container_table_entry));
-        distribution_container *containers = malloc(5* sizeof(distribution_container));
-        container_entry->containers = containers;
+        //distribution_container **containers = malloc(20 * sizeof(*distribution_container));
+        container_entry->containers = malloc(20 * sizeof(*distribution_container));
         container_entry->count = 0;
 
         //insert new state into hashtable.
@@ -476,19 +476,13 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
                         printf("couldn't add conneciton info");fflush(stdout);
                     }else{
                         found_open_container = 1;
-
+                        //memcpy((container_entry->containers + container_entry->count), &next_open_container->container,
+                        //       sizeof(*distribution_container));
                         container_entry->containers[container_entry->count] = next_open_container->container;
                         container_entry->count++;
 
                         uint32_t *rm_key_2 = malloc(sizeof(uint32_t));
                         memcpy(rm_key_2, &room_id, sizeof(uint32_t));
-
-                        //insert new state into hashtable.
-                        if (!hashtable_insert(containers_for_room_id, rm_key_2, container_entry)) {
-                            ret = -1;
-                            printf("didnt add container");fflush(stdout);
-                            //goto(EXIT);
-                        }
 
                         memcpy(container_connection_info, &next_open_container->container->container_info->connection_info, sizeof(container_connection_info_t));
                     }

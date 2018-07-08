@@ -67,7 +67,7 @@ typedef struct{
 } distribution_container;
 
 typedef struct{
-	distribution_container *containers;
+	distribution_container **containers;
 	int count;
 } container_table_entry;
 
