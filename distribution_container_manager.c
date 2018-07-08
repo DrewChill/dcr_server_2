@@ -633,6 +633,7 @@ void s_handler(int signal){
         struct hashtable_itr *iterator;
         iterator = hashtable_iterator(containers_for_room_id);
 
+        int closed = 0;
         int i=0;
         if(hashtable_count(containers_for_room_id) > 0){
             do{
@@ -642,13 +643,14 @@ void s_handler(int signal){
                 int j=0;
                 while(j<te->count){
                     close(te->containers[j]->container_info->sock);
+                    closed++;
                     j++;
                 }
 
                 i++;
             }while(hashtable_iterator_advance(iterator));
         }
-        printf("closed %d sockets...exiting\n", i);fflush(stdout);
+        printf("closed %d sockets...exiting\n", closed);fflush(stdout);
         exit(0);
     }
 }
