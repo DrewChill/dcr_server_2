@@ -456,9 +456,12 @@ void findOpenContainer(){
 
 int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
                                   container_connection_info_t *container_connection_info) {
+    uint32_t *temp = malloc(sizeof(uint32_t));
+    memcpy(temp, &room_id, sizeof(uint32_t));
     int ret = 1;
     void *found;
-    if (NULL == (found = hashtable_search(containers_for_room_id, &room_id))) {
+    if (NULL == (found = hashtable_search(containers_for_room_id, temp))) {
+        free(temp);
         printf("---adding new entry---\n");fflush(stdout);
 
         number_of_table_entries++;
@@ -469,7 +472,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         //new container entry
         container_table_entry *container_entry = malloc(sizeof(container_table_entry));
         //distribution_container **containers = malloc(20 * sizeof(*distribution_container));
-        container_entry->containers = malloc(20 * sizeof(distribution_container*));
+        container_entry->containers = malloc(51 * sizeof(distribution_container*));
         container_entry->count = 0;
 
         //insert new state into hashtable.
@@ -532,6 +535,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
             ret = found_open_container;
         }
     } else {
+        free(temp);
         printf("---found existing entry---\n");fflush(stdout);
         //check if existing distribution containers have space, create new if not
         container_table_entry *container_entry;
