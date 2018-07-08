@@ -12,7 +12,7 @@
 #include <time.h>
 #include "distribution_container_manager.h"
 
-#define BUFFER_LENGTH 2047
+#define BUFFER_LENGTH 204700
 
 #define MAX_CONTAINERS 10000
 #define ROOMS_PER_CONTAINER 5
@@ -603,8 +603,6 @@ void handle_incoming_data(msg_header_t header, char *data){
         int i=0;
         while(i < container_entry->count){
             distribution_container *container = *(container_entry->containers + i);
-
-            printf("acquiring lock...\n");fflush(stdout);
 
             //acquire recv lock
             pthread_mutex_lock(&container->container_info->recv_data.recv_lock);
