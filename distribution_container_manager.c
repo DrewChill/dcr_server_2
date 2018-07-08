@@ -32,6 +32,8 @@ int users_joined = 0;
 
 int connections_made = 0;
 
+int number_of_table_entries = 0;
+
 //interace addr to assign to container connection info
 unsigned long if_addr;
 
@@ -341,7 +343,7 @@ void *container_distribute_recv_data(void *dc) {
                         if(bytes_sent<0){
                             on_error("Client write failed\n");
                         }
-                        printf("---------------- Sent message #%d @ ", message_number);fflush(stdout);
+                        printf("---------------- Sent message #%d @ ", number_of_table_entries);fflush(stdout);
                         print_time();
                         printf("---------------- \n");fflush(stdout);
                     } else {
@@ -458,6 +460,9 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
     void *found;
     if (NULL == (found = hashtable_search(containers_for_room_id, &room_id))) {
         printf("---adding new entry---\n");fflush(stdout);
+
+        number_of_table_entries++;
+
         uint32_t *rm_key_2 = malloc(sizeof(uint32_t));
         memcpy(rm_key_2, &room_id, sizeof(uint32_t));
 
