@@ -8,8 +8,6 @@
 #include <arpa/inet.h>
 #include <stdint.h>
 #include <signal.h>
-//#include <mysql56/my_global.h>
-//#include <mysql.h>
 #include "distribution_container_manager.h"
 #include "db_connection.h"
 

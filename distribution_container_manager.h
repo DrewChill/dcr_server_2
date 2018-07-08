@@ -58,13 +58,23 @@ typedef struct{
 	container_recv_data_t recv_data;
 	struct hashtable *route_map; //keys: room id
                                    //values: remote connection connection info
-} distribution_container;
+} distribution_container_info_t;
 
 //couple the container and worker thread that runs for it
 typedef struct{
 	pthread_t worker_threads[2]; //for sending and receiving data
+	distribution_container_info_t *container_info;
+} distribution_container;
+
+typedef struct{
+	distribution_container *containers;
+	int count;
+}container_table_entry;
+
+typedef struct{
 	distribution_container *container;
-} container_state;
+	container_list_node *next;
+} container_list_node;
 
 void init_distribution_container_manager();
 
