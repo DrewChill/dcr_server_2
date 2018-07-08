@@ -40,6 +40,8 @@ unsigned long if_addr;
 //family to use for connections
 short container_family;
 
+unsigned long first = 0;
+
 //map of distribution containers for room id
 struct hashtable *containers_for_room_id;//keys: room id
                                                       //values: array of container states
@@ -98,7 +100,10 @@ void print_time(){
     printf("%d:%d:%d:%d:%d:%d :: ", timeinfo->tm_year+1900, timeinfo->tm_mon+1, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);fflush(stdout);
     struct timeval start;
     gettimeofday(&start, NULL);
-    printf("%lu", start.tv_usec);
+    if(first==0){
+        first = start.tv_usec;
+    }
+    printf("%lu-->%lu", start.tv_usec, first);
 }
 
 /*****************************************************************************/
