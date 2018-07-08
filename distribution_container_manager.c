@@ -16,7 +16,7 @@
 
 #define MAX_CONTAINERS 10000
 #define ROOMS_PER_CONTAINER 5
-#define ROOM_MEMBERS_PER_CONTAINER 10
+#define ROOM_MEMBERS_PER_CONTAINER 50
 
 #define MAX_MSG_SIZE 256
 #define on_error(...) { fprintf(stderr, __VA_ARGS__); fflush(stderr); exit(1); }
