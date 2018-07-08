@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 //#include <stdint.h>
 #include <pthread.h>
+#include <time.h>
 #include "distribution_container_manager.h"
 
 #define BUFFER_LENGTH 2047
@@ -77,6 +78,19 @@ void init_distribution_container_manager() {
 
     //initialize hashtable
     containers_for_room_id = create_hashtable(5, csfrn_hashfromkey, csfrn_equalkeys);
+}
+
+
+void print_time(){
+    time_t my_time;
+    struct tm * timeinfo;
+    time (&my_time);
+    timeinfo = localtime (&my_time);
+
+    printf("%d:%d:%d:%d:%d:%d :: ", timeinfo->tm_year+1900, timeinfo->tm_mon+1, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);fflush(stdout);
+    struct timeval start;
+    gettimeofday(&start, NULL);
+    printf("%lu\n", start.tv_usec);
 }
 
 /*****************************************************************************/
@@ -319,6 +333,9 @@ void *container_distribute_recv_data(void *dc) {
                         if(bytes_sent<0){
                             on_error("Client write failed\n");
                         }
+                        printf("---------------- Sent message @ ");fflush(stdout);
+                        print_time();
+                        printf("---------------- \n");
                     } else {
                         //it's probably waiting to get the connection request or there was an error
                     }
@@ -552,6 +569,11 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
 
 //*********************Receiving Room Data*********************************
 void handle_incoming_data(msg_header_t header, char *data){
+
+    printf("---------------- Got message @ ");fflush(stdout);
+    print_time();
+    printf("---------------- \n");
+
     void *found;
     if(NULL == (found = hashtable_search(containers_for_room_id, &header.room_id))){
         //error handling
