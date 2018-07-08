@@ -596,6 +596,8 @@ void handle_incoming_data(msg_header_t header, char *data){
         while(i < container_entry->count){
             distribution_container *container = *(container_entry->containers + i);
 
+            printf("acquiring lock...\n");fflush(stdout);
+
             //acquire recv lock
             pthread_mutex_lock(&container->container_info->recv_data.recv_lock);
 
