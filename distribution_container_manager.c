@@ -166,7 +166,7 @@ void *container_connection_listener(void *dc) {
 
     int sock = container_info->sock;
 
-    if (listen(sock, 5) < 0) {
+    if (listen(sock, ROOM_MEMBERS_PER_CONTAINER) < 0) {
         printf("fuuuuck");
         fflush(stdout);
     }
