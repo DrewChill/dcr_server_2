@@ -225,7 +225,7 @@ void *container_connection_listener(void *dc) {
                     }
                     //TODO: probably verify that it is from an expected ip address. (port would be unknown)
                     if (remote.sin_port != 0)
-                        printf("connected to %s:%hu -- %d\n", inet_ntoa(remote.sin_addr), ntohs(remote.sin_port), connections_made);
+                        //printf("connected to %s:%hu -- %d\n", inet_ntoa(remote.sin_addr), ntohs(remote.sin_port), connections_made);
                     fflush(stdout);
                     connections_made++;
                     FD_SET(new_conn, &active_fd_set);
@@ -245,7 +245,7 @@ void *container_connection_listener(void *dc) {
                         //wut? don't anything I guess
                     } else {
                         //handle_received
-                        printf("handling join request...\n");
+                        //printf("handling join request...\n");
                         fflush(stdout);
                         request_status_msg_t response = handle_received_data_at_container(container_info, msg_buffer, remote,
                                                                                           i);
@@ -324,10 +324,9 @@ void *container_distribute_recv_data(void *dc) {
                 }else {
                     memcpy(send_buffer, container_info->recv_data.recv_buffer + container_info->recv_data.tail, len);
                 }
-
+                message_number += remote_data->connection_count;
                 int i;
                 for (i = 0; i < remote_data->connection_count; i++) {
-                    message_number += remote_data->connection_count;
                     //send the data to each connected socket
                     int connected_socket = (remote_data->connections + i)->connected_fd;
                     //printf("checking if client %u is connected...\n", (remote_data->connections + i)->user_id);fflush(stdout);
