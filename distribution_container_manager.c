@@ -269,7 +269,7 @@ void *container_distribute_recv_data(void *dc) {
     while (1) {
         //wait until buffer has data to distribute
         pthread_cond_wait(&container_info->recv_data.buffer_has_data, &container_info->recv_data.recv_lock);
-        printf("attempting to distribute data...%d/%d\n", container_info->recv_data.tail, container_info->recv_data.head);fflush(stdout);
+        //printf("attempting to distribute data...%d/%d\n", container_info->recv_data.tail, container_info->recv_data.head);fflush(stdout);
         //distribute all available data
         while (container_info->recv_data.tail != container_info->recv_data.head) {
             //get the next header from the buffer
@@ -301,7 +301,7 @@ void *container_distribute_recv_data(void *dc) {
             } else {
                 remote_connection_data_t *remote_data;
                 remote_data = (remote_connection_data_t *) found;
-                printf("remote connection count: %d\n", remote_data->connection_count);fflush(stdout);
+                //printf("remote connection count: %d\n", remote_data->connection_count);fflush(stdout);
 
                 char send_buffer[len];
                 if(container_info->recv_data.tail+len > BUFFER_LENGTH){
@@ -321,21 +321,21 @@ void *container_distribute_recv_data(void *dc) {
                 for (i = 0; i < remote_data->connection_count; i++) {
                     //send the data to each connected socket
                     int connected_socket = (remote_data->connections + i)->connected_fd;
-                    printf("checking if client %u is connected...\n", (remote_data->connections + i)->user_id);fflush(stdout);
+                    //printf("checking if client %u is connected...\n", (remote_data->connections + i)->user_id);fflush(stdout);
                     //check if it's actually connected yet
                     if (connected_socket > 0) {
-                        printf("should be sending %d bytes...\n", next_header->msg_length);fflush(stdout);
-                        printf("tail:%d head:%d...\n", container_info->recv_data.tail, container_info->recv_data.head);fflush(stdout);
+                        //printf("should be sending %d bytes...\n", next_header->msg_length);fflush(stdout);
+                        //printf("tail:%d head:%d...\n", container_info->recv_data.tail, container_info->recv_data.head);fflush(stdout);
                         int bytes_sent = send(connected_socket,
                                               send_buffer,
                                               len, 0);
-                        printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
+                        //printf("sent client %d bytes...\n", bytes_sent);printf(stdout);
                         if(bytes_sent<0){
                             on_error("Client write failed\n");
                         }
                         printf("---------------- Sent message @ ");fflush(stdout);
                         print_time();
-                        printf("---------------- \n");
+                        printf("---------------- \n");fflush(stdout);
                     } else {
                         //it's probably waiting to get the connection request or there was an error
                     }
