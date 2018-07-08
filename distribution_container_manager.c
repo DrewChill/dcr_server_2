@@ -628,10 +628,14 @@ void s_handler(int signal){
         int i=0;
         if(hashtable_count(containers_for_room_id) > 0){
             do{
-                distribution_container *dc;
-                dc = hashtable_iterator_value(iterator);
+                container_table_entry *te;
+                te = hashtable_iterator_value(iterator);
 
-                close(dc->container_info->sock);
+                int j=0;
+                while(j<te->count){
+                    close(te->containers[j]->container_info->sock);
+                    j++;
+                }
 
                 i++;
             }while(hashtable_iterator_advance(iterator));
