@@ -145,6 +145,7 @@ handle_received_data_at_container(distribution_container_info_t *container_info,
                 (remote_data->connections + i)->connected_fd = connected_fd;
                 connected_to_container = 1;
             }
+            i++;
         }
 
         request_status_msg_t response;
@@ -183,7 +184,7 @@ void *container_connection_listener(void *dc) {
     while (1) {
         //block until request is received
         read_fd_set = active_fd_set;
-        //TODO:FD_SETSIZE?? ya this is lazy as shit
+        //TODO:FD_SETSIZE??
         if (select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL)) {
             //error handling
         }
