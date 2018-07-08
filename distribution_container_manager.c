@@ -348,7 +348,7 @@ void activate_new_container(uint32_t room_id, uint32_t user_id,
 
     //add user that created it to the intial route map
     remote_connection_data_t *remote_connection_data = calloc(1, sizeof(remote_connection_data));
-    remote_connection_data->connections = calloc(MAX_CONNECTIONS, sizeof(remote_connection_info_t));
+    remote_connection_data->connections = calloc(ROOM_MEMBERS_PER_CONTAINER, sizeof(remote_connection_info_t));
 
     (remote_connection_data->connections + 0)->user_id = user_id;
     (remote_connection_data->connections + 0)->connected_fd = -1; //not connected
