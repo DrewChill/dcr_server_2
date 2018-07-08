@@ -26,6 +26,8 @@ int next_free_port = 20000;
 
 int container_count = 0;
 
+int message_number = 0;
+
 //interace addr to assign to container connection info
 unsigned long if_addr;
 
@@ -319,6 +321,7 @@ void *container_distribute_recv_data(void *dc) {
 
                 int i;
                 for (i = 0; i < remote_data->connection_count; i++) {
+                    message_number += remote_data->connection_count;
                     //send the data to each connected socket
                     int connected_socket = (remote_data->connections + i)->connected_fd;
                     //printf("checking if client %u is connected...\n", (remote_data->connections + i)->user_id);fflush(stdout);
@@ -333,7 +336,7 @@ void *container_distribute_recv_data(void *dc) {
                         if(bytes_sent<0){
                             on_error("Client write failed\n");
                         }
-                        printf("---------------- Sent message @ ");fflush(stdout);
+                        printf("---------------- Sent message #%d @ ", message_number);fflush(stdout);
                         print_time();
                         printf("---------------- \n");fflush(stdout);
                     } else {
