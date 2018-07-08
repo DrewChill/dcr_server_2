@@ -438,7 +438,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         //new container entry
         container_table_entry *container_entry = malloc(sizeof(container_table_entry));
         //distribution_container **containers = malloc(20 * sizeof(*distribution_container));
-        container_entry->containers = malloc(20 * sizeof(*distribution_container));
+        container_entry->containers = malloc(20 * sizeof(distribution_container*));
         container_entry->count = 0;
 
         //insert new state into hashtable.
@@ -557,7 +557,7 @@ void handle_incoming_data(msg_header_t header, char *data){
         container_entry = (container_table_entry *) found;
         int i=0;
         while(i < container_entry->count){
-            distribution_container *container = (container_entry->containers + i);
+            distribution_container *container = *(container_entry->containers + i);
 
             //acquire recv lock
             pthread_mutex_lock(&container->container_info->recv_data.recv_lock);
