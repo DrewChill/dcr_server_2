@@ -362,7 +362,7 @@ void *container_distribute_recv_data(void *dc) {
         }
 
         //finished sending all the data. buffer can be filled again
-        pthread_mutex_unlock(&container_info->recv_data.recv_lock);
+        //pthread_mutex_unlock(&container_info->recv_data.recv_lock);
     }
 }
 
