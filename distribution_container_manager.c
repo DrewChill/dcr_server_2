@@ -342,7 +342,7 @@ void activate_new_container(uint32_t room_id, uint32_t user_id,
     int ret;
     //create new distribution container and add to the hashtable
     distribution_container_info_t *new_container_info = malloc(sizeof(distribution_container_info_t));
-    create_new_distribution_container(new_container_info);
+    create_new_distribution_container_info(new_container_info);
 
     new_container_info->recv_data.recv_buffer = calloc(BUFFER_LENGTH+1, sizeof(char));
 
@@ -508,7 +508,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         int i=0;
         while(i < container_entry->count && !was_added){
             //start from the end, most likely to be open
-            distribution_container *container = (container_entry->containers + (container_entry->count-1-i));
+            distribution_container *container = *(container_entry->containers + (container_entry->count-1-i));
             void *found2;
             if (NULL == (found2 = hashtable_search(container->container_info->route_map, &room_id))) {
                //TODO?
