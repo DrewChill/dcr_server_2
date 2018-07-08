@@ -261,7 +261,7 @@ void *container_distribute_recv_data(void *dc) {
             msg_header_t *next_header = malloc(sizeof(msg_header_t));
             int wrap_around_offset = 0;
             if(container_info->recv_data.tail > container_info->recv_data.head){
-                int space_left = BUFFER_LENGTH-container->recv_data.tail;
+                int space_left = BUFFER_LENGTH-container_info->recv_data.tail;
                 if(space_left >= HEADER_LENGTH){
                     parse_header_info(container_info->recv_data.recv_buffer + container_info->recv_data.tail, next_header);
                 }else{
@@ -382,7 +382,7 @@ void activate_new_container(uint32_t room_id, uint32_t user_id,
 
     //add container to container state and start its worker threads
     distribution_container *new_container = calloc(1,sizeof(distribution_container));
-    container->container_info = new_container_info;
+    new_container->container_info = new_container_info;
 
     //start threads
     if ((ret = pthread_create(&new_container->worker_threads[0], &attr, container_connection_listener,
@@ -399,7 +399,7 @@ void activate_new_container(uint32_t room_id, uint32_t user_id,
     uint32_t *rm_key_2 = malloc(sizeof(uint32_t));
     memcpy(rm_key_2, &room_id, sizeof(uint32_t));
 
-    (container_entry->containers + container_entry->count) = new_container;
+    container_entry->containers[container_entry->count] = new_container;
     container_entry->count++;
 
     //populate container connection info before returning
@@ -477,7 +477,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
                     }else{
                         found_open_container = 1;
 
-                        (container_entry->containers + container_entry->count) = next_open_container->container;
+                        container_entry->containers[container_entry->count] = next_open_container->container;
                         container_entry->count++;
 
                         uint32_t *rm_key_2 = malloc(sizeof(uint32_t));
@@ -528,7 +528,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
                     (remote_connection_data->connections + next_connection)->connected_fd = -1;
                     //printf("why is this here?");fflush(stdout);
                     remote_connection_data->connection_count++;
-                    container->active_connection_count++;
+                    container->container_info->active_connection_count++;
 
                     was_added = 1;
 
@@ -603,10 +603,10 @@ void s_handler(int signal){
         int i=0;
         if(hashtable_count(containers_for_room_id) > 0){
             do{
-                container_state *cs;
-                cs = hashtable_iterator_value(iterator);
+                distribution_container *dc;
+                dc = hashtable_iterator_value(iterator);
 
-                close(cs->container->sock);
+                close(dc->container_info->sock);
 
                 i++;
             }while(hashtable_iterator_advance(iterator));

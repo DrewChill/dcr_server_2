@@ -69,11 +69,11 @@ typedef struct{
 typedef struct{
 	distribution_container *containers;
 	int count;
-}container_table_entry;
+} container_table_entry;
 
 typedef struct{
 	distribution_container *container;
-	container_list_node *next;
+	struct container_list_node *next;
 } container_list_node;
 
 void init_distribution_container_manager();

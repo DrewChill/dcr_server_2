@@ -13,23 +13,6 @@
 
 int messages_distrubuted;
 
-/*****************************************************************************/
-//static unsigned int
-//hashfromkey(void *ky)
-//{
-//    session_info__t *k = (session_info__t *)ky;
-//    return (((k->dst_addr.sin_addr.s_addr << 17) | (k->dst_addr.sin_addr.s_addr >> 15)) ^ k->src_addr.sin_addr.s_addr) +
-//    (k->dst_port * 17) + (k->src_port * 13 * 29);
-//}
-//
-//static int
-//equalkeys(void *k1, void *k2)
-//{
-//    return (0 == memcmp(k1,k2,sizeof(session_info__t)));
-//}
-
-/*****************************************************************************/
-
 //will listen for requests to create a DJ room and create initial distribution container
 void *listen_for_create_requests() {
 
