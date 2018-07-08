@@ -28,6 +28,10 @@ int container_count = 0;
 
 int message_number = 0;
 
+int users_joined = 0;
+
+int connections_made = 0;
+
 //interace addr to assign to container connection info
 unsigned long if_addr;
 
@@ -92,7 +96,7 @@ void print_time(){
     printf("%d:%d:%d:%d:%d:%d :: ", timeinfo->tm_year+1900, timeinfo->tm_mon+1, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);fflush(stdout);
     struct timeval start;
     gettimeofday(&start, NULL);
-    printf("%lu\n", start.tv_usec);
+    printf("%lu", start.tv_usec);
 }
 
 /*****************************************************************************/
@@ -156,7 +160,8 @@ handle_received_data_at_container(distribution_container_info_t *container_info,
         int i = 0;
         while (i < ROOM_MEMBERS_PER_CONTAINER && !connected_to_container) {
             if ((remote_data->connections + i)->user_id == msg_header.user_id) {
-                printf("user subscribed to room...\n");fflush(stdout);
+                users_joined++;
+                printf("user %d subscribed to room...\n", users_joined);fflush(stdout);
                 (remote_data->connections + i)->remote_addr = remote;
                 (remote_data->connections + i)->connected_fd = connected_fd;
                 connected_to_container = 1;
@@ -220,8 +225,9 @@ void *container_connection_listener(void *dc) {
                     }
                     //TODO: probably verify that it is from an expected ip address. (port would be unknown)
                     if (remote.sin_port != 0)
-                        printf("connected to %s:%hu\n", inet_ntoa(remote.sin_addr), ntohs(remote.sin_port));
+                        printf("connected to %s:%hu -- %d\n", inet_ntoa(remote.sin_addr), ntohs(remote.sin_port), connections_made);
                     fflush(stdout);
+                    connections_made++;
                     FD_SET(new_conn, &active_fd_set);
                 } else {
                     //got something from an already connected socket
