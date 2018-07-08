@@ -348,9 +348,6 @@ void *container_distribute_recv_data(void *dc) {
                         if(bytes_sent<0){
                             on_error("Client write failed\n");
                         }
-                        printf("---------------- Sent message #%d @ ", number_of_table_entries);fflush(stdout);
-                        print_time();
-                        printf("---------------- \n");fflush(stdout);
                     } else {
                         //it's probably waiting to get the connection request or there was an error
                     }
@@ -361,6 +358,9 @@ void *container_distribute_recv_data(void *dc) {
             container_info->recv_data.tail += (len-wrap_around_offset);
         }
 
+        printf("---------------- finished sent messages #%d @ ", number_of_table_entries);fflush(stdout);
+        print_time();
+        printf("---------------- \n");fflush(stdout);
         //finished sending all the data. buffer can be filled again
         //pthread_mutex_unlock(&container_info->recv_data.recv_lock);
     }
