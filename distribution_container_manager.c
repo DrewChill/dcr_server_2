@@ -431,7 +431,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
     int ret = 1;
     void *found;
     if (NULL == (found = hashtable_search(containers_for_room_id, &room_id))) {
-
+        printf("---adding new entry---\n");fflush(stdout);
         uint32_t *rm_key_2 = malloc(sizeof(uint32_t));
         memcpy(rm_key_2, &room_id, sizeof(uint32_t));
 
@@ -449,9 +449,10 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         }
 
         if(container_count < MAX_CONTAINERS){
+            printf("---creating new container---\n");fflush(stdout);
             activate_new_container(room_id, user_id, container_connection_info, container_entry);
         }else{
-
+            printf("---using existing container---\n");fflush(stdout);
             int found_open_container = 0;
             int i = 0;
             while(!found_open_container && i < MAX_CONTAINERS){
@@ -500,6 +501,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
             ret = found_open_container;
         }
     } else {
+        printf("---found existing entry---\n");fflush(stdout);
         //check if existing distribution containers have space, create new if not
         container_table_entry *container_entry;
         container_entry = (container_table_entry *) found;
@@ -512,8 +514,10 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
             void *found2;
             if (NULL == (found2 = hashtable_search(container->container_info->route_map, &room_id))) {
                //TODO?
+                printf("---didnt find route map---\n");fflush(stdout);
             }else{
                 //TODO: adding connections needs to be thread safe
+                printf("---checking if container has space---\n");fflush(stdout);
                 remote_connection_data_t *remote_connection_data;
                 remote_connection_data = (remote_connection_data_t *) found2;
                 if (remote_connection_data->connection_count < ROOM_MEMBERS_PER_CONTAINER) {
@@ -534,6 +538,7 @@ int handle_new_connection_request(uint32_t room_id, uint32_t user_id,
         }
 
         if(!was_added && container_count < MAX_CONTAINERS){
+            printf("---no space in existing containers. creating new---\n");fflush(stdout);
             activate_new_container(room_id, user_id, container_connection_info, container_entry);
         }
     }
