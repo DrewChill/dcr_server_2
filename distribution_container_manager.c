@@ -2,14 +2,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-//#include <stdint.h>
 #include <pthread.h>
-//#include "hashtable/hashtable_itr.h"
 #include "distribution_container_manager.h"
 
 #define MAX_MSG_SIZE 256
@@ -174,7 +170,7 @@ handle_received_data_at_container(distribution_container *container, char *data,
     }
 }
 
-void *container_connection_listener(void *dc) {
+_Noreturn void *container_connection_listener(void *dc) {
 
     distribution_container *container;
     container = (distribution_container *) dc;
@@ -251,7 +247,7 @@ void *container_connection_listener(void *dc) {
     }
 }
 
-void *container_distribute_recv_data(void *dc) {
+_Noreturn void *container_distribute_recv_data(void *dc) {
 
     distribution_container *container;
     container = (distribution_container *) dc;
@@ -425,17 +421,9 @@ void handle_incoming_data(msg_header_t header, char *data){
         existing_state = (container_state *) found;
         distribution_container container = existing_state->container;
 
-        container.recv_data.recv_buffer[18] = 1;
         printf("acquiring receive mutex...\n");fflush(stdout);
         pthread_mutex_lock(&container.recv_data.recv_lock);
-        printf("filling ditribution data buffer...%d\n", header.msg_length);fflush(stdout);
-        char buffer[4];
-        buffer[0]=1;
-        buffer[1]=2;
-        buffer[2]=3;
-        buffer[3]=4;
-        uint32_t test = 32;
-        memcpy(container.recv_data.recv_buffer+container.recv_data.head, &test, 4);
+        printf("filling ditribution data buffer...%zu\n", header.msg_length);fflush(stdout);
         memcpy(container.recv_data.recv_buffer+container.recv_data.head, data, header.msg_length);
         container.recv_data.head += header.msg_length;
         printf("well shit...\n");

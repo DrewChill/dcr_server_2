@@ -1,16 +1,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdint.h>
-//#include <mysql56/my_global.h>
-//#include <mysql.h>
+#include <pthread.h>
 #include "distribution_container_manager.h"
 #include "db_connection.h"
+#include "byte_msg_parser.h"
 
 /*****************************************************************************/
 //static unsigned int
@@ -26,11 +24,10 @@
 //{
 //    return (0 == memcmp(k1,k2,sizeof(session_info__t)));
 //}
-
 /*****************************************************************************/
 
 //will listen for requests to create a DJ room and create initial distribution container
-void *listen_for_create_requests() {
+_Noreturn void *listen_for_create_requests() {
 
     int sock;
     struct sockaddr_in addr;
@@ -130,8 +127,7 @@ void *listen_for_create_requests() {
             memcpy(buffer + 15, &host_order, 2);
             memcpy(buffer + 17, &response->container_addr.sin_addr.s_addr, 4);
 
-            numBytesReturned = sendto(sock, buffer, 21, 0, (struct sockaddr *) &remote, sizeof(remote));
-
+            sendto(sock, buffer, 21, 0, (struct sockaddr *) &remote, sizeof(remote));
         } else if (header->msg_type == JOIN_ROOM_REQUEST) {
             //2. use room id to create distribution container. return connection info for container
             container_connection_info_t *container_connection = malloc(sizeof(container_connection_info_t));
@@ -153,8 +149,7 @@ void *listen_for_create_requests() {
             memcpy(buffer + 15, &host_order, 2);
             memcpy(buffer + 17, &response->container_addr.sin_addr.s_addr, 4);
 
-            numBytesReturned = sendto(sock, buffer, 21, 0, (struct sockaddr *) &remote, sizeof(remote));
-
+            sendto(sock, buffer, 21, 0, (struct sockaddr *) &remote, sizeof(remote));
         } else if(header->msg_type == PLAYER_CMND_TYPE){
             printf("attempting to distribute data...\n");fflush(stdout);
             handle_incoming_data(*header, data);

@@ -69,7 +69,8 @@ typedef struct{
 } player_cmnd_msg_t;
 
 //will construct a create room response
-void construct_create_room_response_msg(create_room_response_t *msg, uint8_t status, struct sockaddr_in container_addr, uint32_t user_id, uint32_t room_id);
+void construct_create_room_response_msg(create_room_response_t *msg, uint8_t status,
+                                        struct sockaddr_in container_addr, uint32_t user_id, uint32_t room_id);
 
 //will construct a request response message
 void construct_request_response_msg(request_status_msg_t *msg, uint8_t status, uint32_t user_id, uint32_t room_id);

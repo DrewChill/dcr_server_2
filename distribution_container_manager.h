@@ -77,7 +77,8 @@ void init_distribution_container_manager();
 //  -check if room has a distribution container w/ available connection slots
 //     -if yes, add user id to that container. if no, create new container, spawn worker thread for container
 //  -returns a status
-int handle_new_connection_request(uint32_t room_id, uint32_t user_id, container_connection_info_t *continer_connection_info);
+int handle_new_connection_request(uint32_t room_id,
+                                  uint32_t user_id, container_connection_info_t *continer_connection_info);
 
 //pass data to the appropriate distribution container
 void handle_incoming_data(msg_header_t header, char *data);
